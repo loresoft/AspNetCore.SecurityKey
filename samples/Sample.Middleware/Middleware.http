@@ -1,0 +1,19 @@
+@HostAddress = http://localhost:5284
+
+###
+
+GET {{HostAddress}}/weather/
+Accept: application/json
+X-API-KEY: 01HSGVAH2M5WVQYG4YPT7FNK4K8
+
+###
+
+GET {{HostAddress}}/users/
+Accept: application/json
+x-api-key: 01HSGVAH2M5WVQYG4YPT7FNK4K8
+
+###
+
+GET {{HostAddress}}/addresses/
+Accept: application/json
+X-API-KEY: 01hsgvah2m5wvqyg4ypt7fnk4k8
