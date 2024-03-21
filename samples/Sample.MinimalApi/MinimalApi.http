@@ -16,3 +16,10 @@ X-API-KEY: 01HSGVBSF99SK6XMJQJYF0X3WQ
 GET {{HostAddress}}/addresses/
 Accept: application/json
 X-API-KEY: 01HSGVBSF99SK6XMJQJYF0X3WQ
+
+
+###
+
+GET {{HostAddress}}/config-debugger/
+Accept: application/json
+X-API-KEY: 01HSGVBSF99SK6XMJQJYF0X3WQ
