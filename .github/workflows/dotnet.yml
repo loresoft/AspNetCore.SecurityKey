@@ -5,7 +5,7 @@ env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
   DOTNET_ENVIRONMENT: github
   ASPNETCORE_ENVIRONMENT: github
-  BUILD_PATH: "${{github.workspace}}/artifacts"
+  BUILD_PATH: '${{github.workspace}}/artifacts'
   COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
 
 on:
@@ -14,7 +14,7 @@ on:
       - main
       - develop
     tags:
-      - "v*"
+      - 'v*'
   pull_request:
     branches:
       - main
@@ -51,7 +51,7 @@ jobs:
         if: success()
         uses: coverallsapp/github-action@v2
         with:
-          file: "${{github.workspace}}/test/*/TestResults/*/coverage.info"
+          file: '${{github.workspace}}/test/*/TestResults/*/coverage.info'
           format: lcov
 
       - name: Create Packages
@@ -63,7 +63,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: packages
-          path: "${{env.BUILD_PATH}}"
+          path: '${{env.BUILD_PATH}}'
 
   deploy:
     runs-on: ubuntu-latest
