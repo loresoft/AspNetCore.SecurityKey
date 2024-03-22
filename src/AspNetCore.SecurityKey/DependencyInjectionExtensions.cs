@@ -2,7 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 
-namespace AspNetCore.Extensions.SecurityKey;
+namespace AspNetCore.SecurityKey;
 
 public static class DependencyInjectionExtensions
 {

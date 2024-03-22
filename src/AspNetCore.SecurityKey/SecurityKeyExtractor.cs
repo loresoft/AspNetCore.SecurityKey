@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 
-namespace AspNetCore.Extensions.SecurityKey;
+namespace AspNetCore.SecurityKey;
 
 public class SecurityKeyExtractor : ISecurityKeyExtractor
 {

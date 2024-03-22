@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace AspNetCore.Extensions.SecurityKey;
+namespace AspNetCore.SecurityKey;
 
 public class SecurityKeyAttribute : ServiceFilterAttribute
 {

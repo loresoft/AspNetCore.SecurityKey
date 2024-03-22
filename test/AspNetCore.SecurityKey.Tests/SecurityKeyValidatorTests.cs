@@ -1,4 +1,4 @@
-using AspNetCore.Extensions.SecurityKey;
+using AspNetCore.SecurityKey;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;

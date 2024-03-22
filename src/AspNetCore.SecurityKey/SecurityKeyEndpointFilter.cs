@@ -3,7 +3,7 @@ using AspNetCore.Extensions.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
-namespace AspNetCore.Extensions.SecurityKey;
+namespace AspNetCore.SecurityKey;
 
 #if NET7_0_OR_GREATER
 public class SecurityKeyEndpointFilter : IEndpointFilter

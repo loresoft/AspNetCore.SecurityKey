@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication;
 
-namespace AspNetCore.Extensions.SecurityKey;
+namespace AspNetCore.SecurityKey;
 
 public static class AuthenticationBuilderExtensions
 {

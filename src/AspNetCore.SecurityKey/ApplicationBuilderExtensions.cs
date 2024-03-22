@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 
-namespace AspNetCore.Extensions.SecurityKey;
+namespace AspNetCore.SecurityKey;
 
 public static class ApplicationBuilderExtensions
 {

@@ -1,4 +1,4 @@
-namespace AspNetCore.Extensions.SecurityKey;
+namespace AspNetCore.SecurityKey;
 
 public class SecurityKeyOptions
 {

@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-namespace AspNetCore.Extensions.SecurityKey;
+namespace AspNetCore.SecurityKey;
 
 public interface ISecurityKeyExtractor
 {

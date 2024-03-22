@@ -3,7 +3,7 @@ using System.Text;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 
-namespace AspNetCore.Extensions.SecurityKey.Tests;
+namespace AspNetCore.SecurityKey.Tests;
 
 public class SecurityKeyExtractorTests
 {

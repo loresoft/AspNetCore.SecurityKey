@@ -3,18 +3,14 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.Extensions.SecurityKey", "src\AspNetCore.Extensions.SecurityKey\AspNetCore.Extensions.SecurityKey.csproj", "{B6EAF1BD-410D-44F2-B909-448E37BC0748}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.Extensions.Diagnostics", "src\AspNetCore.Extensions.Diagnostics\AspNetCore.Extensions.Diagnostics.csproj", "{D556675A-4D8F-4F7B-A82C-7DC8CC255FE3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.SecurityKey", "src\AspNetCore.SecurityKey\AspNetCore.SecurityKey.csproj", "{B6EAF1BD-410D-44F2-B909-448E37BC0748}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{8F6AF28D-3302-4CD2-93F8-FEDFF40DA284}"
 	ProjectSection(SolutionItems) = preProject
 		test\Directory.Build.props = test\Directory.Build.props
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.Extensions.SecurityKey.Tests", "test\AspNetCore.Extensions.SecurityKey.Tests\AspNetCore.Extensions.SecurityKey.Tests.csproj", "{524DA054-BB33-46BC-B906-1781DA92816D}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.Extensions.Diagnostics.Tests", "test\AspNetCore.Extensions.Diagnostics.Tests\AspNetCore.Extensions.Diagnostics.Tests.csproj", "{2CF093CB-B64C-4735-BC63-B37DA06B0247}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.SecurityKey.Tests", "test\AspNetCore.SecurityKey.Tests\AspNetCore.SecurityKey.Tests.csproj", "{524DA054-BB33-46BC-B906-1781DA92816D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{8FF17A69-FF3C-4F04-9F5A-1C58B0498D0D}"
 	ProjectSection(SolutionItems) = preProject
@@ -46,18 +42,10 @@ Global
 		{B6EAF1BD-410D-44F2-B909-448E37BC0748}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B6EAF1BD-410D-44F2-B909-448E37BC0748}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B6EAF1BD-410D-44F2-B909-448E37BC0748}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D556675A-4D8F-4F7B-A82C-7DC8CC255FE3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D556675A-4D8F-4F7B-A82C-7DC8CC255FE3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D556675A-4D8F-4F7B-A82C-7DC8CC255FE3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D556675A-4D8F-4F7B-A82C-7DC8CC255FE3}.Release|Any CPU.Build.0 = Release|Any CPU
 		{524DA054-BB33-46BC-B906-1781DA92816D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{524DA054-BB33-46BC-B906-1781DA92816D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{524DA054-BB33-46BC-B906-1781DA92816D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{524DA054-BB33-46BC-B906-1781DA92816D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2CF093CB-B64C-4735-BC63-B37DA06B0247}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2CF093CB-B64C-4735-BC63-B37DA06B0247}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2CF093CB-B64C-4735-BC63-B37DA06B0247}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2CF093CB-B64C-4735-BC63-B37DA06B0247}.Release|Any CPU.Build.0 = Release|Any CPU
 		{24245841-8372-442D-8212-A357138445D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{24245841-8372-442D-8212-A357138445D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{24245841-8372-442D-8212-A357138445D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -80,7 +68,6 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{524DA054-BB33-46BC-B906-1781DA92816D} = {8F6AF28D-3302-4CD2-93F8-FEDFF40DA284}
-		{2CF093CB-B64C-4735-BC63-B37DA06B0247} = {8F6AF28D-3302-4CD2-93F8-FEDFF40DA284}
 		{24245841-8372-442D-8212-A357138445D9} = {8A309522-314D-4C40-9D0E-C42E88CB64E5}
 		{21060613-AFA4-4C8E-B0C9-2CE4368DA6F2} = {8A309522-314D-4C40-9D0E-C42E88CB64E5}
 		{53460F71-F58D-4BEF-9441-2CCA82FA9415} = {8A309522-314D-4C40-9D0E-C42E88CB64E5}

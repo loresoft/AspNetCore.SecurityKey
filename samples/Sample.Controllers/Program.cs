@@ -1,4 +1,4 @@
-using AspNetCore.Extensions.SecurityKey;
+using AspNetCore.SecurityKey;
 
 namespace Sample.Controllers;
 

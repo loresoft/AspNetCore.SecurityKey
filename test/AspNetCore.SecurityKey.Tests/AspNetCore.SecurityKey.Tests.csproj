@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\AspNetCore.Extensions.SecurityKey\AspNetCore.Extensions.SecurityKey.csproj" />
+    <ProjectReference Include="..\..\src\AspNetCore.SecurityKey\AspNetCore.SecurityKey.csproj" />
   </ItemGroup>
 
   <ItemGroup>

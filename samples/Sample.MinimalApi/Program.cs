@@ -1,5 +1,4 @@
-using AspNetCore.Extensions.Diagnostics;
-using AspNetCore.Extensions.SecurityKey;
+using AspNetCore.SecurityKey;
 
 using Sample.Shared;
 
@@ -45,9 +44,6 @@ public static class Program
             .WithName("GetAddresses")
             .WithOpenApi()
             .RequireAuthorization();
-
-        app.MapConfigurationDebugger()
-            .RequireSecurityKey();
 
         app.Run();
     }

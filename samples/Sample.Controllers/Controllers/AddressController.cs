@@ -1,4 +1,4 @@
-using AspNetCore.Extensions.SecurityKey;
+using AspNetCore.SecurityKey;
 
 using Microsoft.AspNetCore.Mvc;
 

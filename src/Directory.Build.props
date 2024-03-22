@@ -7,12 +7,12 @@
     <NeutralLanguage>en-US</NeutralLanguage>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageTags>asp.net;aspnetcore;apikey</PackageTags>
-    <PackageProjectUrl>https://github.com/loresoft/AspNetCore.Extensions</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/loresoft/AspNetCore.SecurityKey</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageIcon>logo.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/loresoft/AspNetCore.Extensions</RepositoryUrl>
+    <RepositoryUrl>https://github.com/loresoft/AspNetCore.SecurityKey</RepositoryUrl>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
   </PropertyGroup>
 
