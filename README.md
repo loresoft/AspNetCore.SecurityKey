@@ -84,7 +84,7 @@ builder.Services.AddSecurityKey(options => {
 });
 ```
 
-### Securty Endpoint
+### Secure Endpoints
 
 Secure Controller with `SecurityKeyAttribute`.  Can be at class or method level
 
