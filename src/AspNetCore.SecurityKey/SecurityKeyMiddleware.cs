@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace AspNetCore.SecurityKey;
 
-public class SecurityKeyMiddleware
+internal sealed class SecurityKeyMiddleware
 {
     private readonly RequestDelegate _next;
 

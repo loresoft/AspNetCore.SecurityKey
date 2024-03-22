@@ -6,6 +6,10 @@ using Microsoft.Extensions.Options;
 
 namespace AspNetCore.SecurityKey;
 
+/// <summary>
+/// Default implementation for validating the security API key
+/// </summary>
+/// <seealso cref="AspNetCore.SecurityKey.ISecurityKeyValidator" />
 public class SecurityKeyValidator : ISecurityKeyValidator
 {
     private readonly IConfiguration _configuration;
@@ -14,6 +18,12 @@ public class SecurityKeyValidator : ISecurityKeyValidator
 
     private readonly Lazy<HashSet<string>> _validKeys;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SecurityKeyValidator"/> class.
+    /// </summary>
+    /// <param name="configuration">The configuration.</param>
+    /// <param name="securityKeyOptions">The security key options.</param>
+    /// <param name="logger">The logger.</param>
     public SecurityKeyValidator(
         IConfiguration configuration,
         IOptions<SecurityKeyOptions> securityKeyOptions,
@@ -27,7 +37,7 @@ public class SecurityKeyValidator : ISecurityKeyValidator
         _validKeys = new Lazy<HashSet<string>>(ExractKeys);
     }
 
-
+    /// <inheritdoc />
     public bool Validate(string? value)
     {
         if (string.IsNullOrWhiteSpace(value))

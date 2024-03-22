@@ -9,12 +9,24 @@ using Microsoft.Extensions.Options;
 
 namespace AspNetCore.SecurityKey;
 
+/// <summary>
+/// Implementation for the cookie-based authentication handler.
+/// </summary>
 public class SecurityKeyAuthenticationHandler : AuthenticationHandler<SecurityKeyAuthenticationSchemeOptions>
 {
     private readonly ISecurityKeyExtractor _securityKeyExtractor;
     private readonly ISecurityKeyValidator _securityKeyValidator;
 
 #pragma warning disable CS0618 // allow ISystemClock for compatibility
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SecurityKeyAuthenticationHandler"/> class.
+    /// </summary>
+    /// <param name="options">Accessor to <see cref="SecurityKeyAuthenticationSchemeOptions"/>.</param>
+    /// <param name="logger">The <see cref="ILoggerFactory"/>.</param>
+    /// <param name="encoder">The <see cref="UrlEncoder"/>.</param>
+    /// <param name="clock">The <see cref="ISystemClock"/>.</param>
+    /// <param name="securityKeyExtractor">The security key extractor.</param>
+    /// <param name="securityKeyValidator">The security key validator.</param>
     public SecurityKeyAuthenticationHandler(
         IOptionsMonitor<SecurityKeyAuthenticationSchemeOptions> options,
         ILoggerFactory logger,
@@ -29,6 +41,7 @@ public class SecurityKeyAuthenticationHandler : AuthenticationHandler<SecurityKe
     }
 #pragma warning restore CS0618
 
+    /// <inheritdoc />
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
         var securityKey = _securityKeyExtractor.GetKey(Context);
