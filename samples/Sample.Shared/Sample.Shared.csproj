@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Update="Bogus" Version="35.5.1" />
+  </ItemGroup>
+
 </Project>
