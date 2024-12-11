@@ -1,3 +1,5 @@
+using System.Security.Claims;
+
 using AspNetCore.Extensions.Authentication;
 
 using Microsoft.Extensions.Configuration;
@@ -12,6 +14,8 @@ namespace AspNetCore.SecurityKey;
 /// <seealso cref="AspNetCore.SecurityKey.ISecurityKeyValidator" />
 public class SecurityKeyValidator : ISecurityKeyValidator
 {
+    private static readonly Claim[] _defaultClaims = [new Claim(ClaimTypes.Name, "Security Key")];
+
     private readonly IConfiguration _configuration;
     private readonly SecurityKeyOptions _securityKeyOptions;
     private readonly ILogger<SecurityKeyValidator> _logger;
@@ -46,13 +50,22 @@ public class SecurityKeyValidator : ISecurityKeyValidator
         return _validKeys.Value.Contains(value);
     }
 
+    /// <inheritdoc />
+    public bool Validate(string? value, out Claim[] claims)
+    {
+       var isValid = Validate(value);
+
+        claims = isValid ? _defaultClaims : [];
+        return isValid;
+    }
+
     private HashSet<string> ExractKeys()
     {
         var keyString = _configuration.GetValue<string>(_securityKeyOptions.ConfigurationName) ?? string.Empty;
 
         SecurityKeyLogger.SecurityKeyUsage(_logger, keyString, _securityKeyOptions.ConfigurationName);
 
-        var keys = keyString.Split([";", ","], StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries) ?? [];
+        var keys = keyString.Split([';', ','], StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries) ?? [];
 
         return new HashSet<string>(keys, _securityKeyOptions.KeyComparer);
     }

@@ -1,3 +1,5 @@
+using System.Security.Claims;
+
 using AspNetCore.SecurityKey;
 
 using Sample.Shared;
@@ -44,6 +46,14 @@ public static class Program
             .WithName("GetAddresses")
             .WithOpenApi()
             .RequireAuthorization();
+
+        app.MapGet("/current", (ClaimsPrincipal? principal) =>
+            {
+                var p = principal;
+                return WeatherFaker.Instance.Generate(5);
+            })
+            .WithName("GetCurrentUser")
+            .WithOpenApi();
 
         app.Run();
     }

@@ -46,14 +46,13 @@ public class SecurityKeyAuthenticationHandler : AuthenticationHandler<SecurityKe
     {
         var securityKey = _securityKeyExtractor.GetKey(Context);
 
-        if (!_securityKeyValidator.Validate(securityKey))
+        if (!_securityKeyValidator.Validate(securityKey, out var claims))
         {
             SecurityKeyLogger.InvalidSecurityKey(Logger, securityKey);
             return Task.FromResult(AuthenticateResult.Fail("Invalid Security Key"));
         }
 
         // create a user claim for the security key
-        var claims = new[] { new Claim(ClaimTypes.Name, "Security Key") };
         var identity = new ClaimsIdentity(claims, SecurityKeyAuthenticationDefaults.AuthenticationScheme);
         var principal = new ClaimsPrincipal(identity);
 
