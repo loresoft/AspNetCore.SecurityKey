@@ -1,7 +1,7 @@
 <Project>
 
   <PropertyGroup Label="Package">
-    <Description>ASP.NET Core Extension Projects</Description>
+    <Description>API Key Authentication Implementation for ASP.NET Core</Description>
     <Copyright>Copyright © $([System.DateTime]::Now.ToString(yyyy)) LoreSoft</Copyright>
     <Authors>LoreSoft</Authors>
     <NeutralLanguage>en-US</NeutralLanguage>

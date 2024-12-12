@@ -10,7 +10,7 @@ namespace AspNetCore.Extensions.Authentication.Tests;
 public class SecurityKeyValidatorTests
 {
     [Fact]
-    public void ValidateSecurityKey()
+    public async Task ValidateSecurityKey()
     {
         var securityKeyOptions = new SecurityKeyOptions();
 
@@ -29,13 +29,18 @@ public class SecurityKeyValidatorTests
 
         var validator = new SecurityKeyValidator(configuration, options, logger);
 
-        validator.Validate("test").Should().BeFalse();
-        validator.Validate("this-is-test").Should().BeTrue();
-        validator.Validate("another-test").Should().BeTrue();
+        var result = await validator.Validate("test");
+        result.Should().BeFalse();
+
+        result = await validator.Validate("this-is-test");
+        result.Should().BeTrue();
+
+        result = await validator.Validate("another-test");
+        result.Should().BeTrue();
     }
 
     [Fact]
-    public void ValidateSecurityKeyCase()
+    public async Task ValidateSecurityKeyCaseAsync()
     {
         var securityKeyOptions = new SecurityKeyOptions()
         {
@@ -57,12 +62,15 @@ public class SecurityKeyValidatorTests
 
         var validator = new SecurityKeyValidator(configuration, options, logger);
 
-        validator.Validate("this-is-test").Should().BeTrue();
-        validator.Validate("THIS-IS-TEST").Should().BeFalse();
+        var result = await validator.Validate("this-is-test");
+        result.Should().BeTrue();
+
+        result = await validator.Validate("THIS-IS-TEST");
+        result.Should().BeFalse();
     }
 
     [Fact]
-    public void ValidateNoKeyFound()
+    public async Task ValidateNoKeyFound()
     {
         var securityKeyOptions = new SecurityKeyOptions();
 
@@ -78,8 +86,13 @@ public class SecurityKeyValidatorTests
 
         var validator = new SecurityKeyValidator(configuration, options, logger);
 
-        validator.Validate("test").Should().BeFalse();
-        validator.Validate("this-is-test").Should().BeFalse();
-        validator.Validate("another-test").Should().BeFalse();
+        var result = await validator.Validate("test");
+        result.Should().BeFalse();
+
+        result = await validator.Validate("this-is-test");
+        result.Should().BeFalse();
+
+        result = await validator.Validate("another-test");
+        result.Should().BeFalse();
     }
 }

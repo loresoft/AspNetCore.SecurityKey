@@ -34,7 +34,7 @@ internal sealed class SecurityKeyMiddleware
 
         var securityKey = _securityKeyExtractor.GetKey(context);
 
-        if (_securityKeyValidator.Validate(securityKey))
+        if (await _securityKeyValidator.Validate(securityKey))
         {
             await _next(context).ConfigureAwait(false);
             return;

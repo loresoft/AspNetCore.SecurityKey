@@ -12,7 +12,7 @@ public static class ApplicationBuilderExtensions
     /// </summary>
     /// <param name="builder">The <see cref="IApplicationBuilder" /> instance this method extends</param>
     /// <returns>
-    /// The <see cref="IApplicationBuilder" /> for requirirng security API keys
+    /// The <see cref="IApplicationBuilder" /> for requiring security API keys
     /// </returns>
     /// <exception cref="System.ArgumentNullException">builder is null</exception>
     public static IApplicationBuilder UseSecurityKey(this IApplicationBuilder builder)

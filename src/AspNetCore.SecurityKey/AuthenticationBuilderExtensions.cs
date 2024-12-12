@@ -37,7 +37,7 @@ public static class AuthenticationBuilderExtensions
         => builder.AddSecurityKey(SecurityKeyAuthenticationDefaults.AuthenticationScheme, configureOptions);
 
     /// <summary>
-    /// Adds security api key authentication to <see cref="AuthenticationBuilder"/> using the specified scheme.
+    /// Adds security API key authentication to <see cref="AuthenticationBuilder"/> using the specified scheme.
     /// </summary>
     /// <param name="builder">The <see cref="AuthenticationBuilder"/>.</param>
     /// <param name="authenticationScheme">The authentication scheme.</param>
@@ -47,7 +47,7 @@ public static class AuthenticationBuilderExtensions
         => builder.AddSecurityKey(authenticationScheme, displayName: null, configureOptions: configureOptions);
 
     /// <summary>
-    /// Adds security api key authentication to <see cref="AuthenticationBuilder"/> using the specified scheme.
+    /// Adds security API key authentication to <see cref="AuthenticationBuilder"/> using the specified scheme.
     /// </summary>
     /// <param name="builder">The <see cref="AuthenticationBuilder"/>.</param>
     /// <param name="authenticationScheme">The authentication scheme.</param>

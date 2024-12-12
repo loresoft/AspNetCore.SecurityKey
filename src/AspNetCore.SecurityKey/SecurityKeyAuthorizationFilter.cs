@@ -1,3 +1,4 @@
+
 using AspNetCore.Extensions.Authentication;
 
 using Microsoft.AspNetCore.Mvc;
@@ -9,8 +10,8 @@ namespace AspNetCore.SecurityKey;
 /// <summary>
 /// A filter that requiring security API key authorization.
 /// </summary>
-/// <seealso cref="Microsoft.AspNetCore.Mvc.Filters.IAuthorizationFilter" />
-public class SecurityKeyAuthorizationFilter : IAuthorizationFilter
+/// <seealso cref="Microsoft.AspNetCore.Mvc.Filters.IAsyncAuthorizationFilter" />
+public class SecurityKeyAuthorizationFilter : IAsyncAuthorizationFilter
 {
     private readonly ISecurityKeyExtractor _securityKeyExtractor;
     private readonly ISecurityKeyValidator _securityKeyValidator;
@@ -33,14 +34,13 @@ public class SecurityKeyAuthorizationFilter : IAuthorizationFilter
     }
 
     /// <inheritdoc />
-    public void OnAuthorization(AuthorizationFilterContext context)
+    public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
     {
-        if (context is null)
-            throw new ArgumentNullException(nameof(context));
+        ArgumentNullException.ThrowIfNull(context);
 
         var securityKey = _securityKeyExtractor.GetKey(context.HttpContext);
 
-        if (_securityKeyValidator.Validate(securityKey))
+        if (await _securityKeyValidator.Validate(securityKey))
             return;
 
         SecurityKeyLogger.InvalidSecurityKey(_logger, securityKey);

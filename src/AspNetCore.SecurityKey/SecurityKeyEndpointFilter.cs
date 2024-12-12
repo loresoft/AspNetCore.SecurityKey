@@ -13,7 +13,7 @@ public class SecurityKeyEndpointFilter : IEndpointFilter
 {
     private readonly ISecurityKeyExtractor _securityKeyExtractor;
     private readonly ISecurityKeyValidator _securityKeyValidator;
-    private readonly ILogger<SecurityKeyAuthorizationFilter> _logger;
+    private readonly ILogger<SecurityKeyEndpointFilter> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SecurityKeyEndpointFilter"/> class.
@@ -24,7 +24,7 @@ public class SecurityKeyEndpointFilter : IEndpointFilter
     public SecurityKeyEndpointFilter(
         ISecurityKeyExtractor securityKeyExtractor,
         ISecurityKeyValidator securityKeyValidator,
-        ILogger<SecurityKeyAuthorizationFilter> logger)
+        ILogger<SecurityKeyEndpointFilter> logger)
     {
         _securityKeyExtractor = securityKeyExtractor ?? throw new ArgumentNullException(nameof(securityKeyExtractor));
         _securityKeyValidator = securityKeyValidator ?? throw new ArgumentNullException(nameof(securityKeyValidator));
@@ -34,12 +34,11 @@ public class SecurityKeyEndpointFilter : IEndpointFilter
     /// <inheritdoc />
     public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
     {
-        if (context is null)
-            throw new ArgumentNullException(nameof(context));
+        ArgumentNullException.ThrowIfNull(context);
 
         var securityKey = _securityKeyExtractor.GetKey(context.HttpContext);
 
-        if (_securityKeyValidator.Validate(securityKey))
+        if (await _securityKeyValidator.Validate(securityKey))
             return await next(context);
 
         SecurityKeyLogger.InvalidSecurityKey(_logger, securityKey);

@@ -1,3 +1,5 @@
+using System.Security.Claims;
+
 namespace AspNetCore.SecurityKey;
 
 /// <summary>
@@ -44,4 +46,28 @@ public class SecurityKeyOptions
     /// The key comparer for validating the security key
     /// </value>
     public IEqualityComparer<string> KeyComparer { get; set; } = StringComparer.OrdinalIgnoreCase;
+
+    /// <summary>
+    /// Gets or sets the authentication scheme used.
+    /// </summary>
+    /// <value>
+    /// The authentication scheme.
+    /// </value>
+    public string AuthenticationScheme { get; set; } = SecurityKeyAuthenticationDefaults.AuthenticationScheme;
+
+    /// <summary>
+    /// Gets or sets the <see cref="Claim.Type"/> used when obtaining the value of <see cref="ClaimsIdentity.Name"/>
+    /// </summary>
+    /// <value>
+    /// The <see cref="Claim.Type"/> used when obtaining the value of <see cref="ClaimsIdentity.Name"/>
+    /// </value>
+    public string ClaimNameType { get; set; } = ClaimTypes.Name;
+
+    /// <summary>
+    /// Gets or sets the <see cref="Claim.Type"/> used when performing logic for <see cref="ClaimsPrincipal.IsInRole"/>
+    /// </summary>
+    /// <value>
+    /// The <see cref="Claim.Type"/> used when performing logic for <see cref="ClaimsPrincipal.IsInRole"/>
+    /// </value>
+    public string ClaimRoleType { get; set; } = ClaimTypes.Role;
 }

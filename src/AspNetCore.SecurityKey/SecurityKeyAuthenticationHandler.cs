@@ -42,22 +42,21 @@ public class SecurityKeyAuthenticationHandler : AuthenticationHandler<SecurityKe
 #pragma warning restore CS0618
 
     /// <inheritdoc />
-    protected override Task<AuthenticateResult> HandleAuthenticateAsync()
+    protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
         var securityKey = _securityKeyExtractor.GetKey(Context);
+        var identity = await _securityKeyValidator.Authenticate(securityKey);
 
-        if (!_securityKeyValidator.Validate(securityKey, out var claims))
+        if (!identity.IsAuthenticated)
         {
             SecurityKeyLogger.InvalidSecurityKey(Logger, securityKey);
-            return Task.FromResult(AuthenticateResult.Fail("Invalid Security Key"));
+            return AuthenticateResult.Fail("Invalid Security Key");
         }
 
         // create a user claim for the security key
-        var identity = new ClaimsIdentity(claims, SecurityKeyAuthenticationDefaults.AuthenticationScheme);
         var principal = new ClaimsPrincipal(identity);
-
         var ticket = new AuthenticationTicket(principal, Scheme.Name);
 
-        return Task.FromResult(AuthenticateResult.Success(ticket));
+        return AuthenticateResult.Success(ticket);
     }
 }

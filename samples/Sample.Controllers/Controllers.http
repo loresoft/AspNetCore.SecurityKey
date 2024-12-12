@@ -1,4 +1,4 @@
-@HostAddress = http://localhost:5154
+@HostAddress = https://localhost:7236
 
 ###
 

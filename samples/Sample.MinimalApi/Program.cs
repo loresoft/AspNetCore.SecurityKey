@@ -49,8 +49,11 @@ public static class Program
 
         app.MapGet("/current", (ClaimsPrincipal? principal) =>
             {
-                var p = principal;
-                return WeatherFaker.Instance.Generate(5);
+                return new
+                {
+                    Name = principal?.Identity?.Name,
+                    Data = WeatherFaker.Instance.Generate(5)
+                };
             })
             .WithName("GetCurrentUser")
             .WithOpenApi();

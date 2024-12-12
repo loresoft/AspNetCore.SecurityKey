@@ -1,4 +1,4 @@
-@HostAddress = http://localhost:5284
+@HostAddress = https://localhost:7006
 
 ###
 
@@ -17,3 +17,9 @@ x-api-key: 01HSGVAH2M5WVQYG4YPT7FNK4K8
 GET {{HostAddress}}/addresses/
 Accept: application/json
 X-API-KEY: 01hsgvah2m5wvqyg4ypt7fnk4k8
+
+###
+
+GET {{HostAddress}}/addresses/
+Accept: application/json
+X-API-KEY: badkey
