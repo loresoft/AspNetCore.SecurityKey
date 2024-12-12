@@ -29,8 +29,7 @@ internal sealed class SecurityKeyMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        if (context is null)
-            throw new ArgumentNullException(nameof(context));
+        ArgumentNullException.ThrowIfNull(context);
 
         var securityKey = _securityKeyExtractor.GetKey(context);
 

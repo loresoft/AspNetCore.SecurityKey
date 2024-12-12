@@ -42,7 +42,7 @@ public class SecurityKeyValidator : ISecurityKeyValidator
     }
 
     /// <inheritdoc />
-    public async ValueTask<ClaimsIdentity> Authenticate(string? value)
+    public async ValueTask<ClaimsIdentity> Authenticate(string? value, CancellationToken cancellationToken = default)
     {
         var isValid = await Validate(value);
 
@@ -57,7 +57,7 @@ public class SecurityKeyValidator : ISecurityKeyValidator
     }
 
     /// <inheritdoc />
-    public ValueTask<bool> Validate(string? value)
+    public ValueTask<bool> Validate(string? value, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(value))
             return ValueTask.FromResult(false);
