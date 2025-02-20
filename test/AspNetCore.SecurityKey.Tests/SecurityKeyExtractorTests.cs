@@ -21,8 +21,8 @@ public class SecurityKeyExtractorTests
 
         var extractedKey = securityKeyExtractor.GetKey(httpContext);
 
-        extractedKey.Should().NotBeNull();
-        extractedKey.Should().Be("test-security-key");
+        Assert.NotNull(extractedKey);
+        Assert.Equal("test-security-key", extractedKey);
     }
 
     [Fact]
@@ -41,8 +41,8 @@ public class SecurityKeyExtractorTests
 
         var extractedKey = securityKeyExtractor.GetKey(httpContext);
 
-        extractedKey.Should().NotBeNull();
-        extractedKey.Should().Be("test-security-key");
+        Assert.NotNull(extractedKey);
+        Assert.Equal("test-security-key", extractedKey);
     }
 
     [Fact]
@@ -62,9 +62,9 @@ public class SecurityKeyExtractorTests
 
         var extractedKey = securityKeyExtractor.GetKey(httpContext);
 
-        extractedKey.Should().NotBeNull();
+        Assert.NotNull(extractedKey);
 
         // should use header first
-        extractedKey.Should().Be("test-security-header");
+        Assert.Equal("test-security-header", extractedKey);
     }
 }

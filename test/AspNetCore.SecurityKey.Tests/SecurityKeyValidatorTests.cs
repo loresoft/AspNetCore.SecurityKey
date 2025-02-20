@@ -30,13 +30,13 @@ public class SecurityKeyValidatorTests
         var validator = new SecurityKeyValidator(configuration, options, logger);
 
         var result = await validator.Validate("test");
-        result.Should().BeFalse();
+        Assert.False(result);
 
         result = await validator.Validate("this-is-test");
-        result.Should().BeTrue();
+        Assert.True(result);
 
         result = await validator.Validate("another-test");
-        result.Should().BeTrue();
+        Assert.True(result);
     }
 
     [Fact]
@@ -63,10 +63,10 @@ public class SecurityKeyValidatorTests
         var validator = new SecurityKeyValidator(configuration, options, logger);
 
         var result = await validator.Validate("this-is-test");
-        result.Should().BeTrue();
+        Assert.True(result);
 
         result = await validator.Validate("THIS-IS-TEST");
-        result.Should().BeFalse();
+        Assert.False(result);
     }
 
     [Fact]
@@ -87,12 +87,12 @@ public class SecurityKeyValidatorTests
         var validator = new SecurityKeyValidator(configuration, options, logger);
 
         var result = await validator.Validate("test");
-        result.Should().BeFalse();
+        Assert.False(result);
 
         result = await validator.Validate("this-is-test");
-        result.Should().BeFalse();
+        Assert.False(result);
 
         result = await validator.Validate("another-test");
-        result.Should().BeFalse();
+        Assert.False(result);
     }
 }
