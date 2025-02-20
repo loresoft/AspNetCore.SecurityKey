@@ -17,8 +17,7 @@ public static class ApplicationBuilderExtensions
     /// <exception cref="System.ArgumentNullException">builder is null</exception>
     public static IApplicationBuilder UseSecurityKey(this IApplicationBuilder builder)
     {
-        if (builder is null)
-            throw new ArgumentNullException(nameof(builder));
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder.UseMiddleware<SecurityKeyMiddleware>();
     }

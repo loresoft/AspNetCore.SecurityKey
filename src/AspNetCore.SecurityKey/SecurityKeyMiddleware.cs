@@ -39,8 +39,6 @@ internal sealed class SecurityKeyMiddleware
             return;
         }
 
-        SecurityKeyLogger.InvalidSecurityKey(_logger, securityKey);
-
         context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
     }
 }

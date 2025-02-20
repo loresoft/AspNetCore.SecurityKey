@@ -18,6 +18,8 @@ public static class EndpointFilterExtensions
     /// </returns>
     public static RouteHandlerBuilder RequireSecurityKey(this RouteHandlerBuilder builder)
     {
+        ArgumentNullException.ThrowIfNull(builder);
+
         builder.AddEndpointFilter<SecurityKeyEndpointFilter>();
         return builder;
     }

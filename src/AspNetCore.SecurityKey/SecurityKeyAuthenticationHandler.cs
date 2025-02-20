@@ -48,10 +48,7 @@ public class SecurityKeyAuthenticationHandler : AuthenticationHandler<SecurityKe
         var identity = await _securityKeyValidator.Authenticate(securityKey);
 
         if (!identity.IsAuthenticated)
-        {
-            SecurityKeyLogger.InvalidSecurityKey(Logger, securityKey);
             return AuthenticateResult.Fail("Invalid Security Key");
-        }
 
         // create a user claim for the security key
         var principal = new ClaimsPrincipal(identity);

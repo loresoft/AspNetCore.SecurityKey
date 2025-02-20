@@ -43,8 +43,6 @@ public class SecurityKeyAuthorizationFilter : IAsyncAuthorizationFilter
         if (await _securityKeyValidator.Validate(securityKey))
             return;
 
-        SecurityKeyLogger.InvalidSecurityKey(_logger, securityKey);
-
         context.Result = new UnauthorizedResult();
     }
 }

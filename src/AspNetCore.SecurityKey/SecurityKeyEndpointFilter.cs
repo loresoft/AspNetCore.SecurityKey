@@ -41,8 +41,6 @@ public class SecurityKeyEndpointFilter : IEndpointFilter
         if (await _securityKeyValidator.Validate(securityKey))
             return await next(context);
 
-        SecurityKeyLogger.InvalidSecurityKey(_logger, securityKey);
-
         return Results.Unauthorized();
     }
 }

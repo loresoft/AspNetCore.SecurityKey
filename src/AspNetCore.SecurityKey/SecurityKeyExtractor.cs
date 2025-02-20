@@ -18,8 +18,7 @@ public class SecurityKeyExtractor : ISecurityKeyExtractor
     /// <exception cref="System.ArgumentNullException">securityKeyOptions</exception>
     public SecurityKeyExtractor(IOptions<SecurityKeyOptions> securityKeyOptions)
     {
-        if (securityKeyOptions == null)
-            throw new ArgumentNullException(nameof(securityKeyOptions));
+        ArgumentNullException.ThrowIfNull(securityKeyOptions);
 
         _securityKeyOptions = securityKeyOptions.Value;
     }

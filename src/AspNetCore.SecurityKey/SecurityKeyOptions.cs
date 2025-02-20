@@ -70,4 +70,12 @@ public class SecurityKeyOptions
     /// The <see cref="Claim.Type"/> used when performing logic for <see cref="ClaimsPrincipal.IsInRole"/>
     /// </value>
     public string ClaimRoleType { get; set; } = ClaimTypes.Role;
+
+    /// <summary>
+    /// Gets or sets the amount of time to cache the claims
+    /// </summary>
+    /// <value>
+    /// The amount of time to cache the claims
+    /// </value>
+    public TimeSpan? CacheTime { get; set; }
 }
