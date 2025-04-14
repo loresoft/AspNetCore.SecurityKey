@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Update="Bogus" Version="35.6.2" />
+    <PackageReference Update="Bogus" Version="35.6.3" />
   </ItemGroup>
 
 </Project>
