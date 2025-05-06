@@ -44,7 +44,7 @@ public class SecurityKeyValidator : ISecurityKeyValidator
     /// <inheritdoc />
     public async ValueTask<ClaimsIdentity> Authenticate(string? value, CancellationToken cancellationToken = default)
     {
-        var isValid = await Validate(value);
+        var isValid = await Validate(value, cancellationToken);
 
         if (!isValid)
             return new ClaimsIdentity();

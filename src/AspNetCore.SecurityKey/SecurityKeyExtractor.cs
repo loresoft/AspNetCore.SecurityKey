@@ -29,13 +29,14 @@ public class SecurityKeyExtractor : ISecurityKeyExtractor
         if (context is null)
             return null;
 
-        if (context.Request.Headers.TryGetValue(_securityKeyOptions.HeaderName, out var headerKey))
+        var request = context.Request;
+        if (request.Headers.TryGetValue(_securityKeyOptions.HeaderName, out var headerKey))
             return headerKey;
 
-        if (context.Request.Query.TryGetValue(_securityKeyOptions.QueryName, out var queryKey))
+        if (request.Query.TryGetValue(_securityKeyOptions.QueryName, out var queryKey))
             return queryKey;
 
-        if (context.Request.Cookies.TryGetValue(_securityKeyOptions.CookieName, out var cookieKey))
+        if (request.Cookies.TryGetValue(_securityKeyOptions.CookieName, out var cookieKey))
             return cookieKey;
 
         return null;
