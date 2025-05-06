@@ -180,3 +180,45 @@ public static class Program
     }
 }
 ```
+
+### Custom Security Key Validation
+
+You can implement your own custom security key validation by implementing the `ISecurityKeyValidator` interface.
+
+```c#
+public class CustomSecurityKeyValidator : ISecurityKeyValidator
+{
+    public Task<bool> ValidateAsync(HttpContext context, string key)
+    {
+        // custom validation logic
+        return Task.FromResult(true);
+    }
+}
+```
+
+Use custom security key validator
+
+```c#
+builder.Services.AddSecurityKey<CustomSecurityKeyValidator>();
+```
+
+### Custom Security Key Extractor
+
+You can implement your own custom security key extractor by implementing the `ISecurityKeyExtractor` interface.
+
+```c#
+public class CustomSecurityKeyExtractor : ISecurityKeyExtractor
+{
+    public Task<string> ExtractAsync(HttpContext context)
+    {
+        // custom extraction logic
+        return Task.FromResult("custom-key");
+    }
+}
+```
+
+Use custom security key validator and extrator
+
+```c#
+builder.Services.AddSecurityKey<CustomSecurityKeyValidator, CustomSecurityKeyExtractor>();
+```

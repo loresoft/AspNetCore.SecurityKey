@@ -7,17 +7,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Update="Bogus" Version="35.6.3" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.4" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="8.1.1" />
+    <PackageReference Include="Scalar.AspNetCore" Version="2.2.7" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\AspNetCore.SecurityKey.OpenApi\AspNetCore.SecurityKey.OpenApi.csproj" />
     <ProjectReference Include="..\..\src\AspNetCore.SecurityKey\AspNetCore.SecurityKey.csproj" />
     <ProjectReference Include="..\Sample.Shared\Sample.Shared.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Update="Bogus" Version="35.6.3" />
   </ItemGroup>
 
 </Project>

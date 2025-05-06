@@ -1,8 +1,11 @@
 using System.Security.Claims;
 
 using AspNetCore.SecurityKey;
+using AspNetCore.SecurityKey.OpenApi;
 
 using Sample.Shared;
+
+using Scalar.AspNetCore;
 
 namespace Sample.MinimalApi;
 
@@ -20,13 +23,10 @@ public static class Program
 
         builder.Services.AddSecurityKey();
 
+        builder.Services.AddOpenApi(options => options.AddDocumentTransformer<SecurityKeyDocumentTransformer>());
         builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
 
         var app = builder.Build();
-
-        app.UseSwagger();
-        app.UseSwaggerUI();
 
         app.UseHttpsRedirection();
 
@@ -57,6 +57,9 @@ public static class Program
             })
             .WithName("GetCurrentUser")
             .WithOpenApi();
+
+        app.MapOpenApi();
+        app.MapScalarApiReference();
 
         app.Run();
     }
