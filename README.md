@@ -222,3 +222,35 @@ Use custom security key validator and extrator
 ```c#
 builder.Services.AddSecurityKey<CustomSecurityKeyValidator, CustomSecurityKeyExtractor>();
 ```
+
+### Open API 
+
+NuGet Package: `AspNetCore.SecurityKey.OpenApi`
+
+Add Open API support 
+
+```c#
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services
+    .AddAuthentication()
+    .AddSecurityKey();
+
+builder.Services.AddAuthorization();
+builder.Services.AddSecurityKey();
+
+// add api key requirment to open api
+builder.Services.AddOpenApi(options => options
+    .AddDocumentTransformer<SecurityKeyDocumentTransformer>()
+);
+
+var app = builder.Build();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapOpenApi();
+
+// use Scalar.AspNetCore package 
+app.MapScalarApiReference();
+```
