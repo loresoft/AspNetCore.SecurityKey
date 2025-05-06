@@ -1,7 +1,6 @@
 using System.Security.Claims;
 
 using AspNetCore.SecurityKey;
-using AspNetCore.SecurityKey.OpenApi;
 
 using Sample.Shared;
 

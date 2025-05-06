@@ -1,9 +1,11 @@
+#if NET9_0_OR_GREATER
+
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 
-namespace AspNetCore.SecurityKey.OpenApi;
+namespace AspNetCore.SecurityKey;
 
 /// <summary>
 /// A transformer that modifies the OpenAPI document to include security key authentication schemes.
@@ -62,3 +64,4 @@ public class SecurityKeyDocumentTransformer(IAuthenticationSchemeProvider authen
         }
     }
 }
+#endif

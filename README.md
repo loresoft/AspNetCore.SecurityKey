@@ -225,9 +225,7 @@ builder.Services.AddSecurityKey<CustomSecurityKeyValidator, CustomSecurityKeyExt
 
 ### Open API 
 
-NuGet Package: `AspNetCore.SecurityKey.OpenApi`
-
-Add Open API support 
+Add Open API support in .NET 9+
 
 ```c#
 var builder = WebApplication.CreateBuilder(args);
