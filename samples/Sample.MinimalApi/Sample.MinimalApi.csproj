@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <PackageReference Update="Bogus" Version="35.6.3" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.5" />
     <PackageReference Include="Scalar.AspNetCore" Version="2.3.0" />
   </ItemGroup>
 
