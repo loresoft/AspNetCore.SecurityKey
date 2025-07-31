@@ -10,7 +10,8 @@ using Microsoft.Extensions.Options;
 namespace AspNetCore.SecurityKey;
 
 /// <summary>
-/// Implementation for the cookie-based authentication handler.
+/// Provides an authentication handler for validating requests using a security API key.
+/// This handler extracts the API key from the HTTP context and authenticates it using the configured validator.
 /// </summary>
 public class SecurityKeyAuthenticationHandler : AuthenticationHandler<SecurityKeyAuthenticationSchemeOptions>
 {
@@ -21,12 +22,12 @@ public class SecurityKeyAuthenticationHandler : AuthenticationHandler<SecurityKe
     /// <summary>
     /// Initializes a new instance of the <see cref="SecurityKeyAuthenticationHandler"/> class.
     /// </summary>
-    /// <param name="options">Accessor to <see cref="SecurityKeyAuthenticationSchemeOptions"/>.</param>
-    /// <param name="logger">The <see cref="ILoggerFactory"/>.</param>
-    /// <param name="encoder">The <see cref="UrlEncoder"/>.</param>
-    /// <param name="clock">The <see cref="ISystemClock"/>.</param>
-    /// <param name="securityKeyExtractor">The security key extractor.</param>
-    /// <param name="securityKeyValidator">The security key validator.</param>
+    /// <param name="options">The options monitor for <see cref="SecurityKeyAuthenticationSchemeOptions"/>.</param>
+    /// <param name="logger">The factory for creating <see cref="ILogger"/> instances.</param>
+    /// <param name="encoder">The <see cref="UrlEncoder"/> for encoding URLs.</param>
+    /// <param name="clock">The <see cref="ISystemClock"/> for time-based operations.</param>
+    /// <param name="securityKeyExtractor">The service used to extract the security API key from the HTTP context.</param>
+    /// <param name="securityKeyValidator">The service used to validate and authenticate the security API key.</param>
     public SecurityKeyAuthenticationHandler(
         IOptionsMonitor<SecurityKeyAuthenticationSchemeOptions> options,
         ILoggerFactory logger,
@@ -41,7 +42,13 @@ public class SecurityKeyAuthenticationHandler : AuthenticationHandler<SecurityKe
     }
 #pragma warning restore CS0618
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Handles authentication for the current request by extracting and validating the security API key.
+    /// If the key is valid, creates an <see cref="AuthenticationTicket"/> with the authenticated principal.
+    /// </summary>
+    /// <returns>
+    /// An <see cref="AuthenticateResult"/> indicating success or failure of the authentication process.
+    /// </returns>
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
         var securityKey = _securityKeyExtractor.GetKey(Context);

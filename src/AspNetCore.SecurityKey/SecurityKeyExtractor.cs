@@ -4,7 +4,9 @@ using Microsoft.Extensions.Options;
 namespace AspNetCore.SecurityKey;
 
 /// <summary>
-/// Default implementation for extracting the security API key
+/// Provides the default implementation for extracting a security API key from an HTTP request.
+/// This extractor attempts to retrieve the key from the request headers, query string, or cookies
+/// using the names specified in <see cref="SecurityKeyOptions"/>.
 /// </summary>
 /// <seealso cref="AspNetCore.SecurityKey.ISecurityKeyExtractor" />
 public class SecurityKeyExtractor : ISecurityKeyExtractor
@@ -14,8 +16,10 @@ public class SecurityKeyExtractor : ISecurityKeyExtractor
     /// <summary>
     /// Initializes a new instance of the <see cref="SecurityKeyExtractor"/> class.
     /// </summary>
-    /// <param name="securityKeyOptions">The security key options.</param>
-    /// <exception cref="System.ArgumentNullException">securityKeyOptions</exception>
+    /// <param name="securityKeyOptions">The options specifying header, query, and cookie names for key extraction.</param>
+    /// <exception cref="ArgumentNullException">
+    /// Thrown if <paramref name="securityKeyOptions"/> is <c>null</c>.
+    /// </exception>
     public SecurityKeyExtractor(IOptions<SecurityKeyOptions> securityKeyOptions)
     {
         ArgumentNullException.ThrowIfNull(securityKeyOptions);
@@ -23,7 +27,15 @@ public class SecurityKeyExtractor : ISecurityKeyExtractor
         _securityKeyOptions = securityKeyOptions.Value;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Attempts to extract the security API key from the specified <see cref="HttpContext"/>.
+    /// The key is searched in the request headers, query string, and cookies, in that order,
+    /// using the names configured in <see cref="SecurityKeyOptions"/>.
+    /// </summary>
+    /// <param name="context">The <see cref="HttpContext"/> representing the current HTTP request.</param>
+    /// <returns>
+    /// The extracted security API key if found; otherwise, <c>null</c>.
+    /// </returns>
     public string? GetKey(HttpContext? context)
     {
         if (context is null)

@@ -3,18 +3,21 @@ using Microsoft.AspNetCore.Builder;
 namespace AspNetCore.SecurityKey;
 
 /// <summary>
-/// Extension methods for the <see cref="SecurityKeyMiddleware"/>.
+/// Provides extension methods for integrating <see cref="SecurityKeyMiddleware"/> into the ASP.NET Core request pipeline.
 /// </summary>
 public static class ApplicationBuilderExtensions
 {
     /// <summary>
-    /// Adds middleware for requiring security API key for all requests.
+    /// Registers the <see cref="SecurityKeyMiddleware"/> in the application's request pipeline.
+    /// This middleware enforces the presence of a valid security API key for all incoming HTTP requests.
     /// </summary>
-    /// <param name="builder">The <see cref="IApplicationBuilder" /> instance this method extends</param>
+    /// <param name="builder">The <see cref="IApplicationBuilder"/> to configure.</param>
     /// <returns>
-    /// The <see cref="IApplicationBuilder" /> for requiring security API keys
+    /// The <see cref="IApplicationBuilder"/> instance for chaining further middleware registrations.
     /// </returns>
-    /// <exception cref="System.ArgumentNullException">builder is null</exception>
+    /// <exception cref="ArgumentNullException">
+    /// Thrown when <paramref name="builder"/> is <c>null</c>.
+    /// </exception>
     public static IApplicationBuilder UseSecurityKey(this IApplicationBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);

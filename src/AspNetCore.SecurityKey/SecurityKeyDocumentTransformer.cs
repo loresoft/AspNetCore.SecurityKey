@@ -8,18 +8,26 @@ using Microsoft.OpenApi.Models;
 namespace AspNetCore.SecurityKey;
 
 /// <summary>
-/// A transformer that modifies the OpenAPI document to include security key authentication schemes.
+/// Modifies the OpenAPI document to include security API key authentication schemes.
+/// This transformer inspects the registered authentication schemes and, if the security API key scheme is present,
+/// adds the appropriate <see cref="OpenApiSecurityScheme"/> to the document components and applies it to all operations.
 /// </summary>
-public class SecurityKeyDocumentTransformer(IAuthenticationSchemeProvider authenticationSchemeProvider, IOptions<SecurityKeyOptions> securityKeyOptions)
+public class SecurityKeyDocumentTransformer(
+    IAuthenticationSchemeProvider authenticationSchemeProvider,
+    IOptions<SecurityKeyOptions> securityKeyOptions)
     : IOpenApiDocumentTransformer
 {
     /// <summary>
-    /// Transforms the OpenAPI document to include security key authentication schemes.
+    /// Transforms the provided <see cref="OpenApiDocument"/> to include security API key authentication.
+    /// If the security API key authentication scheme is registered, this method adds an <see cref="OpenApiSecurityScheme"/>
+    /// using the header name specified in <see cref="SecurityKeyOptions.HeaderName"/> and applies the scheme to all operations.
     /// </summary>
-    /// <param name="document">The OpenAPI document to transform.</param>
-    /// <param name="context">The context for the OpenAPI document transformation.</param>
-    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="document">The <see cref="OpenApiDocument"/> to transform.</param>
+    /// <param name="context">The <see cref="OpenApiDocumentTransformerContext"/> for the transformation process.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
+    /// <returns>
+    /// A <see cref="Task"/> representing the asynchronous transformation operation.
+    /// </returns>
     public async Task TransformAsync(OpenApiDocument document, OpenApiDocumentTransformerContext context, CancellationToken cancellationToken)
     {
         var authenticationSchemes = await authenticationSchemeProvider.GetAllSchemesAsync();
