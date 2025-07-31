@@ -1,0 +1,19 @@
+<Solution>
+  <Folder Name="/Build/">
+    <File Path=".github/workflows/dotnet.yml" />
+    <File Path="README.md" />
+    <File Path="src/Directory.Build.props" />
+  </Folder>
+  <Folder Name="/Samples/">
+    <File Path="samples/Directory.Build.props" />
+    <Project Path="samples/Sample.Controllers/Sample.Controllers.csproj" />
+    <Project Path="samples/Sample.Middleware/Sample.Middleware.csproj" />
+    <Project Path="samples/Sample.MinimalApi/Sample.MinimalApi.csproj" />
+    <Project Path="samples/Sample.Shared/Sample.Shared.csproj" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <File Path="test/Directory.Build.props" />
+    <Project Path="test/AspNetCore.SecurityKey.Tests/AspNetCore.SecurityKey.Tests.csproj" />
+  </Folder>
+  <Project Path="src/AspNetCore.SecurityKey/AspNetCore.SecurityKey.csproj" />
+</Solution>

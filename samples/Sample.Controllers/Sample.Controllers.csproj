@@ -7,16 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.3" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\AspNetCore.SecurityKey\AspNetCore.SecurityKey.csproj" />
     <ProjectReference Include="..\Sample.Shared\Sample.Shared.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Update="Bogus" Version="35.6.3" />
   </ItemGroup>
 
 </Project>
