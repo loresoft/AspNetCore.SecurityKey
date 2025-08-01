@@ -1,4 +1,6 @@
 using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 
 using AspNetCore.Extensions.Authentication;
 
@@ -20,7 +22,8 @@ public class SecurityKeyValidator : ISecurityKeyValidator
     private readonly SecurityKeyOptions _securityKeyOptions;
     private readonly ILogger<SecurityKeyValidator> _logger;
 
-    private readonly Lazy<HashSet<string>> _validKeys;
+    private readonly Lazy<ReadOnlyMemory<byte>[]> _validKeyBytes;
+
     private readonly Claim[] _claims;
 
     /// <summary>
@@ -42,7 +45,7 @@ public class SecurityKeyValidator : ISecurityKeyValidator
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         // one-time extract keys
-        _validKeys = new Lazy<HashSet<string>>(ExractKeys);
+        _validKeyBytes = new Lazy<ReadOnlyMemory<byte>[]>(ExtractKeyBytes);
         _claims = [new Claim(_securityKeyOptions.ClaimNameType, "SecurityKey")];
     }
 
@@ -82,17 +85,23 @@ public class SecurityKeyValidator : ISecurityKeyValidator
         if (string.IsNullOrWhiteSpace(value))
             return ValueTask.FromResult(false);
 
-        return ValueTask.FromResult(_validKeys.Value.Contains(value));
+        var valueBytes = Encoding.UTF8.GetBytes(value);
+
+        foreach (var validKey in _validKeyBytes.Value)
+        {
+            // If the lengths do not match, skip this key
+            if (valueBytes.Length != validKey.Length)
+                continue;
+
+            // Use CryptographicOperations.FixedTimeEquals to prevent timing attacks
+            if (CryptographicOperations.FixedTimeEquals(valueBytes, validKey.Span))
+                return ValueTask.FromResult(true);
+        }
+
+        return ValueTask.FromResult(false);
     }
 
-    /// <summary>
-    /// Extracts the set of valid security API keys from configuration.
-    /// Keys are split using ';' or ',' and trimmed; empty entries are ignored.
-    /// </summary>
-    /// <returns>
-    /// A <see cref="HashSet{String}"/> containing all valid security API keys.
-    /// </returns>
-    private HashSet<string> ExractKeys()
+    private ReadOnlyMemory<byte>[] ExtractKeyBytes()
     {
         var keyString = _configuration.GetValue<string>(_securityKeyOptions.ConfigurationName) ?? string.Empty;
 
@@ -100,6 +109,11 @@ public class SecurityKeyValidator : ISecurityKeyValidator
 
         var keys = keyString.Split([';', ','], StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries) ?? [];
 
-        return new HashSet<string>(keys, _securityKeyOptions.KeyComparer);
+        var keyBytes = new ReadOnlyMemory<byte>[keys.Length];
+
+        for (int i = 0; i < keys.Length; i++)
+            keyBytes[i] = Encoding.UTF8.GetBytes(keys[i]);
+
+        return keyBytes;
     }
 }
