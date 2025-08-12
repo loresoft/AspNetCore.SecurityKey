@@ -60,11 +60,11 @@ public static class DependencyInjectionExtensions
         if (configure != null)
             services.Configure(configure);
 
-        services.TryAddSingleton<ISecurityKeyExtractor, TExtractor>();
-        services.TryAddSingleton<ISecurityKeyValidator, TValidator>();
+        services.AddSingleton<ISecurityKeyExtractor, TExtractor>();
+        services.AddSingleton<ISecurityKeyValidator, TValidator>();
 
         // used by SecurityKeyAttribute
-        services.TryAddSingleton<SecurityKeyAuthorizationFilter>();
+        services.AddSingleton<SecurityKeyAuthorizationFilter>();
 
         return services;
     }
