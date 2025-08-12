@@ -52,8 +52,12 @@ public class SecurityKeyAuthenticationHandler : AuthenticationHandler<SecurityKe
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
         var securityKey = _securityKeyExtractor.GetKey(Context);
-        var identity = await _securityKeyValidator.Authenticate(securityKey);
 
+        // If no security key is provided, return no result
+        if (string.IsNullOrEmpty(securityKey))
+            return AuthenticateResult.NoResult();
+
+        var identity = await _securityKeyValidator.Authenticate(securityKey);
         if (!identity.IsAuthenticated)
             return AuthenticateResult.Fail("Invalid Security Key");
 
