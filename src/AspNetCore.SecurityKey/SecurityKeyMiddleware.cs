@@ -1,7 +1,5 @@
 using System.Net;
 
-using AspNetCore.Extensions.Authentication;
-
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
