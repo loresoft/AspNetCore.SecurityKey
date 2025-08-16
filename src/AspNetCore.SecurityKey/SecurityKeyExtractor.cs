@@ -1,3 +1,5 @@
+using System.Net;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 
@@ -52,5 +54,31 @@ public class SecurityKeyExtractor : ISecurityKeyExtractor
             return cookieKey;
 
         return null;
+    }
+
+    /// <summary>
+    /// Gets the remote IP address of the client making the request.
+    /// </summary>
+    /// <param name="context">The <see cref="HttpContext"/> representing the current HTTP request.</param>
+    /// <returns>
+    /// The remote IP address as a string if found; otherwise, <c>null</c>.
+    /// </returns>
+    public IPAddress? GetRemoteAddress(HttpContext? context)
+    {
+        if (context is null)
+            return null;
+
+        // x-forwarded-for header is commonly used to pass the original client IP address
+        if (context.Request.Headers.TryGetValue("X-Forwarded-For", out var forwardedFor)
+            && !string.IsNullOrWhiteSpace(forwardedFor))
+        {
+            // If multiple IPs are present, take the first one
+            var value = forwardedFor.ToString();
+            var first =  value.Split(',').FirstOrDefault()?.Trim();
+            if (IPAddress.TryParse(first, out var address))
+                return address;
+        }
+
+        return context.Connection.RemoteIpAddress;
     }
 }

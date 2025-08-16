@@ -55,7 +55,9 @@ public class SecurityKeyAuthenticationHandler : AuthenticationHandler<SecurityKe
         if (string.IsNullOrEmpty(securityKey))
             return AuthenticateResult.NoResult();
 
-        var identity = await _securityKeyValidator.Authenticate(securityKey);
+        var ipAddress = _securityKeyExtractor.GetRemoteAddress(Context);
+
+        var identity = await _securityKeyValidator.Authenticate(securityKey, ipAddress);
         if (!identity.IsAuthenticated)
             return AuthenticateResult.Fail("Invalid Security Key");
 

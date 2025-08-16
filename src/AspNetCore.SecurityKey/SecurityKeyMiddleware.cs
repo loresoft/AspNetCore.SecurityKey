@@ -54,8 +54,9 @@ internal sealed class SecurityKeyMiddleware
         ArgumentNullException.ThrowIfNull(context);
 
         var securityKey = _securityKeyExtractor.GetKey(context);
+        var ipAddress = _securityKeyExtractor.GetRemoteAddress(context);
 
-        if (await _securityKeyValidator.Validate(securityKey))
+        if (await _securityKeyValidator.Validate(securityKey, ipAddress))
         {
             await _next(context).ConfigureAwait(false);
             return;

@@ -15,6 +15,7 @@ A flexible and lightweight API key authentication library for ASP.NET Core appli
 - [Installation](#installation)
 - [How to Pass API Keys](#how-to-pass-api-keys)
 - [Configuration](#configuration)
+- [IP Address Whitelisting](#ip-address-whitelisting)
 - [Usage Patterns](#usage-patterns)
 - [Advanced Customization](#advanced-customization)
 - [OpenAPI/Swagger Integration](#openapiswagger-integration)
@@ -30,18 +31,14 @@ AspNetCore.SecurityKey provides a complete API key authentication solution for A
 
 **Key Features:**
 
-- 🔑 **Multiple Input Sources** - API keys via headers, query parameters, or cookies
-- 🛡️ **Flexible Authentication** - Works with ASP.NET Core's built-in authentication or as standalone middleware
-- 🔧 **Extensible Design** - Custom validation and extraction logic support
-- 📝 **Rich Integration** - Controller attributes, middleware, and minimal API support
-- 📖 **OpenAPI Support** - Automatic Swagger/OpenAPI documentation generation (.NET 9+)
-- ⚡ **High Performance** - Minimal overhead with optional caching
-- 🏗️ **Multiple Deployment Patterns** - Attribute-based, middleware, or endpoint filters
-
-**Supported Frameworks:**
-
-- .NET 8.0+
-- ASP.NET Core 8.0+
+- **Multiple Input Sources** - API keys via headers, query parameters, or cookies
+- **Flexible Authentication** - Works with ASP.NET Core's built-in authentication or as standalone middleware
+- **IP Address Whitelisting** - Restrict API access by IP addresses and network ranges (IPv4 and IPv6)
+- **Extensible Design** - Custom validation and extraction logic support
+- **Rich Integration** - Controller attributes, middleware, and minimal API support
+- **OpenAPI Support** - Automatic Swagger/OpenAPI documentation generation (.NET 9+)
+- **High Performance** - Minimal overhead with optional caching and timing-attack protection
+- **Multiple Deployment Patterns** - Attribute-based, middleware, or endpoint filters
 
 ## Quick Start
 
@@ -151,6 +148,34 @@ Support multiple valid API keys using semicolon separation:
 }
 ```
 
+### Enhanced Configuration Format
+
+For advanced scenarios with IP whitelisting and multiple keys, use the enhanced configuration format:
+
+```json
+{
+  "SecurityKey": {
+    "AllowedKeys": [
+      "01HSGVBGWXWDWTFGTJSYFXXDXQ",
+      "01HSGVBSF99SK6XMJQJYF0X3WQ",
+      "01HSGVAH2M5WVQYG4YPT7FNK4K8"
+    ],
+    "AllowedAddresses": [
+      "192.168.1.100",
+      "10.0.0.1",
+      "203.0.113.50",
+      "::1"
+    ],
+    "AllowedNetworks": [
+      "192.168.0.0/16",
+      "10.0.0.0/8",
+      "172.16.0.0/12",
+      "2001:db8::/32"
+    ]
+  }
+}
+```
+
 ### Advanced Options
 
 Customize key extraction and validation behavior:
@@ -184,6 +209,107 @@ builder.Services.AddSecurityKey(options =>
     options.CacheTime = TimeSpan.FromMinutes(5);
 });
 ```
+
+## IP Address Whitelisting
+
+AspNetCore.SecurityKey provides built-in IP address whitelisting capabilities to restrict API access based on client IP addresses. This feature supports both IPv4 and IPv6 addresses, individual IPs, and network ranges using CIDR notation.
+
+### Configuration
+
+IP whitelisting is configured using the enhanced configuration format in `appsettings.json`:
+
+```json
+{
+  "SecurityKey": {
+    "AllowedKeys": ["your-api-key-here"],
+    "AllowedAddresses": [
+      "192.168.1.100",      // Specific IPv4 address
+      "10.0.0.1",           // Another IPv4 address
+      "::1",                // IPv6 localhost
+      "2001:db8::1"         // Specific IPv6 address
+    ],
+    "AllowedNetworks": [
+      "192.168.0.0/16",     // Private network range
+      "10.0.0.0/8",         // Class A private network
+      "172.16.0.0/12",      // Class B private network
+      "2001:db8::/32"       // IPv6 network range
+    ]
+  }
+}
+```
+
+### How It Works
+
+1. **No Restrictions**: If neither `AllowedAddresses` nor `AllowedNetworks` are configured, all IP addresses are allowed
+2. **Address Matching**: Client IP is checked against the `AllowedAddresses` list for exact matches
+3. **Network Matching**: Client IP is checked against the `AllowedNetworks` list using CIDR notation
+4. **Combined Logic**: A request is allowed if the IP matches either an allowed address OR falls within an allowed network
+
+### Common Use Cases
+
+#### Development Environment
+Allow only local development machines:
+
+```json
+{
+  "SecurityKey": {
+    "AllowedKeys": ["dev-key-123"],
+    "AllowedAddresses": [
+      "127.0.0.1",          // IPv4 localhost
+      "::1"                 // IPv6 localhost
+    ],
+    "AllowedNetworks": [
+      "192.168.0.0/16"      // Local network
+    ]
+  }
+}
+```
+
+#### Corporate Environment
+Allow only internal corporate networks:
+
+```json
+{
+  "SecurityKey": {
+    "AllowedKeys": ["corporate-api-key"],
+    "AllowedNetworks": [
+      "10.0.0.0/8",         // Corporate internal network
+      "172.16.0.0/12",      // Secondary corporate network
+      "203.0.113.0/24"      // Public-facing servers
+    ]
+  }
+}
+```
+
+
+### Reverse Proxy Considerations
+
+When running behind a reverse proxy (like nginx, IIS, or cloud load balancers), ensure proper configuration to get the real client IP:
+
+```csharp
+// Configure forwarded headers
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownProxies.Clear();
+    options.KnownNetworks.Clear();
+});
+
+var app = builder.Build();
+
+// Use forwarded headers before SecurityKey middleware
+app.UseForwardedHeaders();
+app.UseSecurityKey();
+```
+
+### Security Considerations
+
+1. **Combine with HTTPS**: IP whitelisting should always be combined with HTTPS to prevent man-in-the-middle attacks
+2. **Network Ranges**: Be careful with broad network ranges like `0.0.0.0/0` or `::/0` as they allow all addresses
+3. **Dynamic IPs**: Consider that client IPs may change, especially for mobile clients or users behind NAT
+4. **Proxy Headers**: Validate that your reverse proxy configuration correctly forwards real client IPs
+5. **Logging**: Monitor failed authentication attempts to detect potential security issues
+
 
 ## Usage Patterns
 
@@ -333,7 +459,7 @@ public class DatabaseSecurityKeyValidator : ISecurityKeyValidator
         _logger = logger;
     }
 
-    public async ValueTask<bool> Validate(string? value, CancellationToken cancellationToken = default)
+    public async ValueTask<bool> Validate(string? value, IPAddress? ipAddress = null, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(value))
             return false;
@@ -354,6 +480,13 @@ public class DatabaseSecurityKeyValidator : ISecurityKeyValidator
                 return false;
             }
 
+            // Validate IP address if restrictions are configured
+            if (!IsIpAddressAllowed(ipAddress, apiKey.AllowedIpAddresses, apiKey.AllowedNetworks))
+            {
+                _logger.LogWarning("API key {Key} used from unauthorized IP: {IpAddress}", value, ipAddress);
+                return false;
+            }
+
             // Update last used timestamp
             await _repository.UpdateLastUsedAsync(value, DateTime.UtcNow, cancellationToken);
             
@@ -366,7 +499,7 @@ public class DatabaseSecurityKeyValidator : ISecurityKeyValidator
         }
     }
 
-    public async ValueTask<ClaimsIdentity> Authenticate(string? value, CancellationToken cancellationToken = default)
+    public async ValueTask<ClaimsIdentity> Authenticate(string? value, IPAddress? ipAddress = null, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(value))
             return new ClaimsIdentity();
@@ -386,6 +519,12 @@ public class DatabaseSecurityKeyValidator : ISecurityKeyValidator
         }
 
         return identity;
+    }
+
+    private bool IsIpAddressAllowed(IPAddress? ipAddress, string[]? allowedAddresses, string[]? allowedNetworks)
+    {
+        // Use the built-in whitelist functionality
+        return SecurityKeyWhitelist.IsIpAllowed(ipAddress, allowedAddresses, allowedNetworks);
     }
 }
 
@@ -567,6 +706,21 @@ The `SecurityKeyDocumentTransformer` automatically configures the OpenAPI specif
 2. **Key Rotation**: Implement regular API key rotation policies
 3. **Logging**: Log authentication attempts without exposing the actual keys
 4. **Rate Limiting**: Implement rate limiting to prevent abuse
+5. **IP Whitelisting**: Use IP restrictions for additional security when possible
+6. **Timing Attack Protection**: The library uses cryptographic operations to prevent timing attacks
+
+### Configuration Best Practices
+
+1. **Environment Variables**: Store sensitive keys in environment variables or secure key vaults
+2. **Separate Keys**: Use different API keys for different environments (dev, staging, production)
+3. **Network Restrictions**: Configure IP whitelisting to restrict access to known sources
+4. **Monitor Usage**: Implement logging and monitoring to track API key usage patterns
+
+### Performance Considerations
+
+1. **Caching**: Enable caching for authentication results when using custom validators
+2. **Connection Pooling**: Use connection pooling for database-backed validators
+3. **Async Operations**: Leverage async/await patterns for I/O operations
 
 ## Troubleshooting
 
@@ -609,6 +763,22 @@ builder.Services.AddScoped<IApiKeyRepository, ApiKeyRepository>();
 builder.Services.AddSecurityKey<CustomValidator>();
 ```
 
+**Issue**: IP whitelisting not working correctly
+
+**Solution**: Check reverse proxy configuration and enable debug logging:
+
+```csharp
+// Configure forwarded headers
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+});
+
+var app = builder.Build();
+app.UseForwardedHeaders(); // Must be before UseSecurityKey()
+app.UseSecurityKey();
+```
+
 ### Debug Logging
 
 Enable detailed logging to troubleshoot issues:
@@ -630,7 +800,7 @@ For complete working examples, see the samples in this repository:
 
 - **[Sample.Controllers](samples/Sample.Controllers/)** - Controller-based API with attribute security
 - **[Sample.Middleware](samples/Sample.Middleware/)** - Middleware-based global security  
-- **[Sample.MinimalApi](samples/Sample.MinimalApi/)** - Minimal APIs with endpoint filters
+- **[Sample.MinimalApi](samples/Sample.MinimalApi/)** - Minimal APIs with endpoint filters and IP whitelisting
 
 Each sample includes:
 

@@ -49,8 +49,9 @@ public class SecurityKeyAuthorizationFilter : IAsyncAuthorizationFilter
         ArgumentNullException.ThrowIfNull(context);
 
         var securityKey = _securityKeyExtractor.GetKey(context.HttpContext);
+        var ipAddress = _securityKeyExtractor.GetRemoteAddress(context.HttpContext);
 
-        if (await _securityKeyValidator.Validate(securityKey))
+        if (await _securityKeyValidator.Validate(securityKey, ipAddress))
             return;
 
         context.Result = new UnauthorizedResult();

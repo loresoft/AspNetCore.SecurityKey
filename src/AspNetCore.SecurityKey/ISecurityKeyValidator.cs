@@ -1,3 +1,4 @@
+using System.Net;
 using System.Security.Claims;
 
 namespace AspNetCore.SecurityKey;
@@ -12,20 +13,22 @@ public interface ISecurityKeyValidator
     /// Asynchronously validates the specified security API key.
     /// </summary>
     /// <param name="value">The security API key to validate. May be <c>null</c> if not provided in the request.</param>
+    /// <param name="ipAddress">The IP address of the client making the request.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>
     /// A <see cref="ValueTask{Boolean}"/> that resolves to <c>true</c> if the security API key is valid; otherwise, <c>false</c>.
     /// </returns>
-    ValueTask<bool> Validate(string? value, CancellationToken cancellationToken = default);
+    ValueTask<bool> Validate(string? value, IPAddress? ipAddress = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously authenticates the specified security API key and produces a <see cref="ClaimsIdentity"/> if valid.
     /// </summary>
     /// <param name="value">The security API key to authenticate. May be <c>null</c> if not provided in the request.</param>
+    /// <param name="ipAddress">The IP address of the client making the request.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>
     /// A <see cref="ValueTask{ClaimsIdentity}"/> representing the result of the authentication.
     /// The returned <see cref="ClaimsIdentity"/> should reflect the authenticated principal if the key is valid.
     /// </returns>
-    ValueTask<ClaimsIdentity> Authenticate(string? value, CancellationToken cancellationToken = default);
+    ValueTask<ClaimsIdentity> Authenticate(string? value, IPAddress? ipAddress = null, CancellationToken cancellationToken = default);
 }

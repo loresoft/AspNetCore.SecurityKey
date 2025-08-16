@@ -51,8 +51,9 @@ public class SecurityKeyEndpointFilter : IEndpointFilter
         ArgumentNullException.ThrowIfNull(context);
 
         var securityKey = _securityKeyExtractor.GetKey(context.HttpContext);
+        var ipAddress = _securityKeyExtractor.GetRemoteAddress(context.HttpContext);
 
-        if (await _securityKeyValidator.Validate(securityKey))
+        if (await _securityKeyValidator.Validate(securityKey, ipAddress))
             return await next(context);
 
         return Results.Unauthorized();
