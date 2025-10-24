@@ -38,7 +38,7 @@
 
   <ItemGroup>
     <PackageReference Update="Bogus" Version="35.6.3" />
-    <PackageReference Update="XUnit.Hosting" Version="2.0.1" />
+    <PackageReference Update="XUnit.Hosting" Version="3.0.2" />
   </ItemGroup>
 
 </Project>
