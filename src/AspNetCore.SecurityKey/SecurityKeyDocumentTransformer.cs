@@ -1,9 +1,9 @@
-#if NET9_0_OR_GREATER
+#if NET10_0_OR_GREATER
 
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.Extensions.Options;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 
 namespace AspNetCore.SecurityKey;
 
@@ -37,6 +37,7 @@ public class SecurityKeyDocumentTransformer(
 
         var headerName = securityKeyOptions.Value.HeaderName;
 
+        // Add the security scheme at the document level
         var openApiSecurityScheme1 = new OpenApiSecurityScheme
         {
             Type = SecuritySchemeType.ApiKey,
@@ -45,7 +46,7 @@ public class SecurityKeyDocumentTransformer(
             Name = headerName
         };
 
-        var requirements = new Dictionary<string, OpenApiSecurityScheme>
+        var requirements = new Dictionary<string, IOpenApiSecurityScheme>
         {
             ["API Key"] = openApiSecurityScheme1
         };
@@ -53,22 +54,16 @@ public class SecurityKeyDocumentTransformer(
         document.Components ??= new OpenApiComponents();
         document.Components.SecuritySchemes = requirements;
 
-        foreach (var operation in document.Paths.Values.SelectMany(path => path.Operations))
+        // Apply it as a requirement for all operations
+        foreach (var operation in document.Paths.Values.SelectMany(path => path.Operations ?? []))
         {
-            var openApiSecurityScheme = new OpenApiSecurityScheme
+            OpenApiSecurityRequirement securityRequirement = new()
             {
-                Reference = new OpenApiReference
-                {
-                    Id = "API Key",
-                    Type = ReferenceType.SecurityScheme
-                }
-            };
-            var requirement = new OpenApiSecurityRequirement
-            {
-                [openApiSecurityScheme] = Array.Empty<string>()
+                [new OpenApiSecuritySchemeReference("API Key", document)] = []
             };
 
-            operation.Value.Security.Add(requirement);
+            operation.Value.Security ??= [];
+            operation.Value.Security.Add(securityRequirement);
         }
     }
 }

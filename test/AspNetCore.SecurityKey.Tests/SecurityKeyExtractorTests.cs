@@ -127,7 +127,7 @@ public class SecurityKeyExtractorTests
     }
 
     [Fact]
-    public void GetRemoteAddress_FromXForwardedForMultipleIps_ReturnsFirstIp()
+    public void GetRemoteAddress_FromXForwardedForMultipleIPs_ReturnsFirstIp()
     {
         var securityKeyOptions = new SecurityKeyOptions();
         var options = new OptionsWrapper<SecurityKeyOptions>(securityKeyOptions);

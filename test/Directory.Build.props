@@ -30,15 +30,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AssemblyMetadata.Generators" Version="2.1.0" PrivateAssets="All" />
-    <PackageReference Include="Bogus" Version="35.6.5" />
-    <PackageReference Include="MinVer" Version="6.0.0" PrivateAssets="All" />
-    <PackageReference Include="XUnit.Hosting" Version="3.1.0" />
+    <PackageReference Include="AssemblyMetadata.Generators" PrivateAssets="All" />
+    <PackageReference Include="Bogus" />
+    <PackageReference Include="MinVer" PrivateAssets="All" />
+    <PackageReference Include="XUnit.Hosting" />
   </ItemGroup>
 
   <ItemGroup>
     <Using Include="Xunit" />
-    <Using Include="Xunit.Abstractions" />
   </ItemGroup>
 
 </Project>

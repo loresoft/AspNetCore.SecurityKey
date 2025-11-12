@@ -33,17 +33,14 @@ public static class Program
         app.UseAuthorization();
 
         app.MapGet("/weather", () => WeatherFaker.Instance.Generate(5))
-            .WithName("GetWeatherForecast")
-            .WithOpenApi();
+            .WithName("GetWeatherForecast");
 
         app.MapGet("/users", () => UserFaker.Instance.Generate(10))
             .WithName("GetUsers")
-            .WithOpenApi()
             .RequireSecurityKey();
 
         app.MapGet("/addresses", () => AddressFaker.Instance.Generate(10))
             .WithName("GetAddresses")
-            .WithOpenApi()
             .RequireAuthorization();
 
         app.MapGet("/current", (ClaimsPrincipal? principal) =>
@@ -54,8 +51,7 @@ public static class Program
                     Data = WeatherFaker.Instance.Generate(5)
                 };
             })
-            .WithName("GetCurrentUser")
-            .WithOpenApi();
+            .WithName("GetCurrentUser");
 
         app.MapOpenApi();
         app.MapScalarApiReference();
