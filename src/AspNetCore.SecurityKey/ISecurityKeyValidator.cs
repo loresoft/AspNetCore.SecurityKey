@@ -25,10 +25,11 @@ public interface ISecurityKeyValidator
     /// </summary>
     /// <param name="value">The security API key to authenticate. May be <c>null</c> if not provided in the request.</param>
     /// <param name="ipAddress">The IP address of the client making the request.</param>
+    /// <param name="scheme">The authentication scheme to use for the <see cref="ClaimsIdentity"/>. If <see langword="null"/>, the default scheme is used.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>
     /// A <see cref="ValueTask{ClaimsIdentity}"/> representing the result of the authentication.
     /// The returned <see cref="ClaimsIdentity"/> should reflect the authenticated principal if the key is valid.
     /// </returns>
-    ValueTask<ClaimsIdentity> Authenticate(string? value, IPAddress? ipAddress = null, CancellationToken cancellationToken = default);
+    ValueTask<ClaimsIdentity> Authenticate(string? value, IPAddress? ipAddress = null, string? scheme = null, CancellationToken cancellationToken = default);
 }

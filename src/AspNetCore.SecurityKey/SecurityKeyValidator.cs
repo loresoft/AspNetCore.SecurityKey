@@ -58,12 +58,13 @@ public class SecurityKeyValidator : ISecurityKeyValidator
     /// </summary>
     /// <param name="value">The security API key to authenticate. May be <c>null</c> if not provided in the request.</param>
     /// <param name="ipAddress">The IP address of the client making the request.</param>
+    /// <param name="scheme">The authentication scheme to use. If <c>null</c>, the default scheme from <see cref="SecurityKeyOptions"/> is used.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>
     /// A <see cref="ValueTask{ClaimsIdentity}"/> representing the result of the authentication.
     /// The returned <see cref="ClaimsIdentity"/> reflects the authenticated principal if the key is valid; otherwise, an empty identity.
     /// </returns>
-    public async ValueTask<ClaimsIdentity> Authenticate(string? value, IPAddress? ipAddress = null, CancellationToken cancellationToken = default)
+    public async ValueTask<ClaimsIdentity> Authenticate(string? value, IPAddress? ipAddress = null, string? scheme = null, CancellationToken cancellationToken = default)
     {
         var isValid = await Validate(value, ipAddress, cancellationToken);
 
@@ -72,7 +73,7 @@ public class SecurityKeyValidator : ISecurityKeyValidator
 
         return new ClaimsIdentity(
             claims: _claims,
-            authenticationType: _securityKeyOptions.AuthenticationScheme,
+            authenticationType: scheme ?? _securityKeyOptions.AuthenticationScheme,
             nameType: _securityKeyOptions.ClaimNameType,
             roleType: _securityKeyOptions.ClaimRoleType);
     }

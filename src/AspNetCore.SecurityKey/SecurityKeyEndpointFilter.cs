@@ -56,6 +56,7 @@ public class SecurityKeyEndpointFilter : IEndpointFilter
         if (await _securityKeyValidator.Validate(securityKey, ipAddress))
             return await next(context);
 
+        _logger.LogWarning("Invalid security key {SecurityKey} from IP {IPAddress}", securityKey, ipAddress);
         return Results.Unauthorized();
     }
 }

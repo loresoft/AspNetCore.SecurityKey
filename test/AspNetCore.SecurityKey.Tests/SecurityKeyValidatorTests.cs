@@ -27,13 +27,15 @@ public class SecurityKeyValidatorTests
         var logger = NullLoggerFactory.Instance.CreateLogger<SecurityKeyValidator>();
         var validator = new SecurityKeyValidator(configuration, options, logger);
 
-        var result = await validator.Validate("test");
+        var ct = TestContext.Current.CancellationToken;
+
+        var result = await validator.Validate("test", cancellationToken: ct);
         Assert.False(result);
 
-        result = await validator.Validate("this-is-test");
+        result = await validator.Validate("this-is-test", cancellationToken: ct);
         Assert.True(result);
 
-        result = await validator.Validate("another-test");
+        result = await validator.Validate("another-test", cancellationToken: ct);
         Assert.True(result);
     }
 
@@ -55,16 +57,18 @@ public class SecurityKeyValidatorTests
         var logger = NullLoggerFactory.Instance.CreateLogger<SecurityKeyValidator>();
         var validator = new SecurityKeyValidator(configuration, options, logger);
 
-        var result = await validator.Validate("key1");
+        var ct = TestContext.Current.CancellationToken;
+
+        var result = await validator.Validate("key1", cancellationToken: ct);
         Assert.True(result);
 
-        result = await validator.Validate("key2");
+        result = await validator.Validate("key2", cancellationToken: ct);
         Assert.True(result);
 
-        result = await validator.Validate("key3");
+        result = await validator.Validate("key3", cancellationToken: ct);
         Assert.True(result);
 
-        result = await validator.Validate("key4");
+        result = await validator.Validate("key4", cancellationToken: ct);
         Assert.False(result);
     }
 
@@ -88,16 +92,18 @@ public class SecurityKeyValidatorTests
         var logger = NullLoggerFactory.Instance.CreateLogger<SecurityKeyValidator>();
         var validator = new SecurityKeyValidator(configuration, options, logger);
 
-        var result = await validator.Validate("first-key");
+        var ct = TestContext.Current.CancellationToken;
+
+        var result = await validator.Validate("first-key", cancellationToken: ct);
         Assert.True(result);
 
-        result = await validator.Validate("second-key");
+        result = await validator.Validate("second-key", cancellationToken: ct);
         Assert.True(result);
 
-        result = await validator.Validate("third-key");
+        result = await validator.Validate("third-key", cancellationToken: ct);
         Assert.True(result);
 
-        result = await validator.Validate("invalid-key");
+        result = await validator.Validate("invalid-key", cancellationToken: ct);
         Assert.False(result);
     }
 
@@ -123,24 +129,26 @@ public class SecurityKeyValidatorTests
         var logger = NullLoggerFactory.Instance.CreateLogger<SecurityKeyValidator>();
         var validator = new SecurityKeyValidator(configuration, options, logger);
 
+        var ct = TestContext.Current.CancellationToken;
+
         // Valid key with allowed IP address
-        var result = await validator.Validate("valid-key", IPAddress.Parse("192.168.1.100"));
+        var result = await validator.Validate("valid-key", IPAddress.Parse("192.168.1.100"), cancellationToken: ct);
         Assert.True(result);
 
         // Valid key with IP in allowed network
-        result = await validator.Validate("valid-key", IPAddress.Parse("192.168.1.50"));
+        result = await validator.Validate("valid-key", IPAddress.Parse("192.168.1.50"), cancellationToken: ct);
         Assert.True(result);
 
         // Valid key with IP in another allowed network
-        result = await validator.Validate("valid-key", IPAddress.Parse("10.0.0.50"));
+        result = await validator.Validate("valid-key", IPAddress.Parse("10.0.0.50"), cancellationToken: ct);
         Assert.True(result);
 
         // Valid key but IP not allowed
-        result = await validator.Validate("valid-key", IPAddress.Parse("203.0.113.1"));
+        result = await validator.Validate("valid-key", IPAddress.Parse("203.0.113.1"), cancellationToken: ct);
         Assert.False(result);
 
         // Invalid key regardless of IP
-        result = await validator.Validate("invalid-key", IPAddress.Parse("192.168.1.100"));
+        result = await validator.Validate("invalid-key", IPAddress.Parse("192.168.1.100"), cancellationToken: ct);
         Assert.False(result);
     }
 
@@ -165,10 +173,12 @@ public class SecurityKeyValidatorTests
         var logger = NullLoggerFactory.Instance.CreateLogger<SecurityKeyValidator>();
         var validator = new SecurityKeyValidator(configuration, options, logger);
 
-        var result = await validator.Validate("this-is-test");
+        var ct = TestContext.Current.CancellationToken;
+
+        var result = await validator.Validate("this-is-test", cancellationToken: ct);
         Assert.True(result);
 
-        result = await validator.Validate("THIS-IS-TEST");
+        result = await validator.Validate("THIS-IS-TEST", cancellationToken: ct);
         Assert.False(result);
     }
 
@@ -190,13 +200,15 @@ public class SecurityKeyValidatorTests
         var logger = NullLoggerFactory.Instance.CreateLogger<SecurityKeyValidator>();
         var validator = new SecurityKeyValidator(configuration, options, logger);
 
-        var result = await validator.Validate(null);
+        var ct = TestContext.Current.CancellationToken;
+
+        var result = await validator.Validate(null, cancellationToken: ct);
         Assert.False(result);
 
-        result = await validator.Validate("");
+        result = await validator.Validate("", cancellationToken: ct);
         Assert.False(result);
 
-        result = await validator.Validate("   ");
+        result = await validator.Validate("   ", cancellationToken: ct);
         Assert.False(result);
     }
 
@@ -215,13 +227,15 @@ public class SecurityKeyValidatorTests
         var logger = NullLoggerFactory.Instance.CreateLogger<SecurityKeyValidator>();
         var validator = new SecurityKeyValidator(configuration, options, logger);
 
-        var result = await validator.Validate("test");
+        var ct = TestContext.Current.CancellationToken;
+
+        var result = await validator.Validate("test", cancellationToken: ct);
         Assert.False(result);
 
-        result = await validator.Validate("this-is-test");
+        result = await validator.Validate("this-is-test", cancellationToken: ct);
         Assert.False(result);
 
-        result = await validator.Validate("another-test");
+        result = await validator.Validate("another-test", cancellationToken: ct);
         Assert.False(result);
     }
 
@@ -243,7 +257,9 @@ public class SecurityKeyValidatorTests
         var logger = NullLoggerFactory.Instance.CreateLogger<SecurityKeyValidator>();
         var validator = new SecurityKeyValidator(configuration, options, logger);
 
-        var result = await validator.Validate("test");
+        var ct = TestContext.Current.CancellationToken;
+
+        var result = await validator.Validate("test", cancellationToken: ct);
         Assert.False(result);
     }
 
@@ -265,18 +281,20 @@ public class SecurityKeyValidatorTests
         var logger = NullLoggerFactory.Instance.CreateLogger<SecurityKeyValidator>();
         var validator = new SecurityKeyValidator(configuration, options, logger);
 
+        var ct = TestContext.Current.CancellationToken;
+
         // Test that keys of different lengths are properly handled
-        var result = await validator.Validate("short");
+        var result = await validator.Validate("short", cancellationToken: ct);
         Assert.True(result);
 
-        result = await validator.Validate("very-long-security-key-for-testing");
+        result = await validator.Validate("very-long-security-key-for-testing", cancellationToken: ct);
         Assert.True(result);
 
         // Test partial matches don't validate
-        result = await validator.Validate("very-long-security-key");
+        result = await validator.Validate("very-long-security-key", cancellationToken: ct);
         Assert.False(result);
 
-        result = await validator.Validate("shor");
+        result = await validator.Validate("shor", cancellationToken: ct);
         Assert.False(result);
     }
 
@@ -298,7 +316,9 @@ public class SecurityKeyValidatorTests
         var logger = NullLoggerFactory.Instance.CreateLogger<SecurityKeyValidator>();
         var validator = new SecurityKeyValidator(configuration, options, logger);
 
-        var identity = await validator.Authenticate("valid-key");
+        var ct = TestContext.Current.CancellationToken;
+
+        var identity = await validator.Authenticate("valid-key", cancellationToken: ct);
 
         Assert.NotNull(identity);
         Assert.True(identity.IsAuthenticated);
@@ -329,7 +349,9 @@ public class SecurityKeyValidatorTests
         var logger = NullLoggerFactory.Instance.CreateLogger<SecurityKeyValidator>();
         var validator = new SecurityKeyValidator(configuration, options, logger);
 
-        var identity = await validator.Authenticate("invalid-key");
+        var ct = TestContext.Current.CancellationToken;
+
+        var identity = await validator.Authenticate("invalid-key", cancellationToken: ct);
 
         Assert.NotNull(identity);
         Assert.False(identity.IsAuthenticated);
@@ -355,7 +377,9 @@ public class SecurityKeyValidatorTests
         var logger = NullLoggerFactory.Instance.CreateLogger<SecurityKeyValidator>();
         var validator = new SecurityKeyValidator(configuration, options, logger);
 
-        var identity = await validator.Authenticate("valid-key", IPAddress.Parse("192.168.1.100"));
+        var ct = TestContext.Current.CancellationToken;
+
+        var identity = await validator.Authenticate("valid-key", IPAddress.Parse("192.168.1.100"), cancellationToken: ct);
 
         Assert.NotNull(identity);
         Assert.True(identity.IsAuthenticated);
@@ -381,7 +405,9 @@ public class SecurityKeyValidatorTests
         var logger = NullLoggerFactory.Instance.CreateLogger<SecurityKeyValidator>();
         var validator = new SecurityKeyValidator(configuration, options, logger);
 
-        var identity = await validator.Authenticate("valid-key", IPAddress.Parse("10.0.0.1"));
+        var ct = TestContext.Current.CancellationToken;
+
+        var identity = await validator.Authenticate("valid-key", IPAddress.Parse("10.0.0.1"), cancellationToken: ct);
 
         Assert.NotNull(identity);
         Assert.False(identity.IsAuthenticated);
@@ -411,7 +437,9 @@ public class SecurityKeyValidatorTests
         var logger = NullLoggerFactory.Instance.CreateLogger<SecurityKeyValidator>();
         var validator = new SecurityKeyValidator(configuration, options, logger);
 
-        var identity = await validator.Authenticate("valid-key");
+        var ct = TestContext.Current.CancellationToken;
+
+        var identity = await validator.Authenticate("valid-key", cancellationToken: ct);
 
         Assert.NotNull(identity);
         Assert.True(identity.IsAuthenticated);
@@ -442,12 +470,12 @@ public class SecurityKeyValidatorTests
         var logger = NullLoggerFactory.Instance.CreateLogger<SecurityKeyValidator>();
         var validator = new SecurityKeyValidator(configuration, options, logger);
 
-        using var cts = new CancellationTokenSource();
+        var cancellationToken = TestContext.Current.CancellationToken;
 
-        var result = await validator.Validate("valid-key", cancellationToken: cts.Token);
+        var result = await validator.Validate("valid-key", cancellationToken: cancellationToken);
         Assert.True(result);
 
-        var identity = await validator.Authenticate("valid-key", cancellationToken: cts.Token);
+        var identity = await validator.Authenticate("valid-key", cancellationToken: cancellationToken);
         Assert.True(identity.IsAuthenticated);
     }
 }

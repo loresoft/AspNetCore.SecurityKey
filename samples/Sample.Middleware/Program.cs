@@ -30,16 +30,13 @@ public static class Program
         app.UseAuthorization();
 
         app.MapGet("/weather", () => WeatherFaker.Instance.Generate(5))
-            .WithName("GetWeatherForecast")
-            .WithOpenApi();
+            .WithName("GetWeatherForecast");
 
         app.MapGet("/users", () => UserFaker.Instance.Generate(10))
-            .WithName("GetUsers")
-            .WithOpenApi();
+            .WithName("GetUsers");
 
         app.MapGet("/addresses", () => AddressFaker.Instance.Generate(10))
-            .WithName("GetAddresses")
-            .WithOpenApi();
+            .WithName("GetAddresses");
 
         app.Run();
     }

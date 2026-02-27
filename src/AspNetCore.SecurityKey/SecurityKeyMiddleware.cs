@@ -62,6 +62,7 @@ internal sealed class SecurityKeyMiddleware
             return;
         }
 
+        _logger.LogWarning("Invalid security key {SecurityKey} from IP {IPAddress}", securityKey, ipAddress);
         context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
     }
 }

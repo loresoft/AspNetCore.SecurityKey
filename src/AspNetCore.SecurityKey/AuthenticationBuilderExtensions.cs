@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace AspNetCore.SecurityKey;
 
@@ -27,7 +28,9 @@ public static class AuthenticationBuilderExtensions
     /// <returns>
     /// The <see cref="AuthenticationBuilder"/> instance for chaining further authentication configuration.
     /// </returns>
-    public static AuthenticationBuilder AddSecurityKey(this AuthenticationBuilder builder, string authenticationScheme)
+    public static AuthenticationBuilder AddSecurityKey(
+        this AuthenticationBuilder builder,
+        string authenticationScheme)
         => builder.AddSecurityKey(authenticationScheme: authenticationScheme, displayName: null, configureOptions: null);
 
     /// <summary>
@@ -39,7 +42,9 @@ public static class AuthenticationBuilderExtensions
     /// <returns>
     /// The <see cref="AuthenticationBuilder"/> instance for chaining further authentication configuration.
     /// </returns>
-    public static AuthenticationBuilder AddSecurityKey(this AuthenticationBuilder builder, Action<SecurityKeyAuthenticationSchemeOptions>? configureOptions)
+    public static AuthenticationBuilder AddSecurityKey(
+        this AuthenticationBuilder builder,
+        Action<SecurityKeyAuthenticationSchemeOptions>? configureOptions)
         => builder.AddSecurityKey(authenticationScheme: SecurityKeyAuthenticationDefaults.AuthenticationScheme, displayName: null, configureOptions: configureOptions);
 
     /// <summary>
@@ -51,7 +56,10 @@ public static class AuthenticationBuilderExtensions
     /// <returns>
     /// The <see cref="AuthenticationBuilder"/> instance for chaining further authentication configuration.
     /// </returns>
-    public static AuthenticationBuilder AddSecurityKey(this AuthenticationBuilder builder, string authenticationScheme, Action<SecurityKeyAuthenticationSchemeOptions>? configureOptions)
+    public static AuthenticationBuilder AddSecurityKey(
+        this AuthenticationBuilder builder,
+        string authenticationScheme,
+        Action<SecurityKeyAuthenticationSchemeOptions>? configureOptions)
         => builder.AddSecurityKey(authenticationScheme: authenticationScheme, displayName: null, configureOptions: configureOptions);
 
     /// <summary>
@@ -67,7 +75,11 @@ public static class AuthenticationBuilderExtensions
     /// <exception cref="ArgumentNullException">
     /// Thrown when <paramref name="builder"/> is <c>null</c>.
     /// </exception>
-    public static AuthenticationBuilder AddSecurityKey(this AuthenticationBuilder builder, string authenticationScheme, string? displayName, Action<SecurityKeyAuthenticationSchemeOptions>? configureOptions)
+    public static AuthenticationBuilder AddSecurityKey(
+        this AuthenticationBuilder builder,
+        string authenticationScheme,
+        string? displayName,
+        Action<SecurityKeyAuthenticationSchemeOptions>? configureOptions)
         => builder.AddSecurityKey<SecurityKeyValidator, SecurityKeyExtractor>(authenticationScheme, displayName, configureOptions);
 
     /// <summary>
@@ -91,7 +103,9 @@ public static class AuthenticationBuilderExtensions
     /// <returns>
     /// The <see cref="AuthenticationBuilder"/> instance for chaining further authentication configuration.
     /// </returns>
-    public static AuthenticationBuilder AddSecurityKey<TValidator>(this AuthenticationBuilder builder, string authenticationScheme)
+    public static AuthenticationBuilder AddSecurityKey<TValidator>(
+        this AuthenticationBuilder builder,
+        string authenticationScheme)
         where TValidator : class, ISecurityKeyValidator
         => builder.AddSecurityKey<TValidator, SecurityKeyExtractor>(authenticationScheme: authenticationScheme, displayName: null, configureOptions: null);
 
@@ -104,7 +118,9 @@ public static class AuthenticationBuilderExtensions
     /// <returns>
     /// The <see cref="AuthenticationBuilder"/> instance for chaining further authentication configuration.
     /// </returns>
-    public static AuthenticationBuilder AddSecurityKey<TValidator>(this AuthenticationBuilder builder, Action<SecurityKeyAuthenticationSchemeOptions>? configureOptions)
+    public static AuthenticationBuilder AddSecurityKey<TValidator>(
+        this AuthenticationBuilder builder,
+        Action<SecurityKeyAuthenticationSchemeOptions>? configureOptions)
         where TValidator : class, ISecurityKeyValidator
         => builder.AddSecurityKey<TValidator, SecurityKeyExtractor>(authenticationScheme: SecurityKeyAuthenticationDefaults.AuthenticationScheme, displayName: null, configureOptions: configureOptions);
 
@@ -132,7 +148,9 @@ public static class AuthenticationBuilderExtensions
     /// <returns>
     /// The <see cref="AuthenticationBuilder"/> instance for chaining further authentication configuration.
     /// </returns>
-    public static AuthenticationBuilder AddSecurityKey<TValidator, TExtractor>(this AuthenticationBuilder builder, string authenticationScheme)
+    public static AuthenticationBuilder AddSecurityKey<TValidator, TExtractor>(
+        this AuthenticationBuilder builder,
+        string authenticationScheme)
         where TValidator : class, ISecurityKeyValidator
         where TExtractor : class, ISecurityKeyExtractor
         => builder.AddSecurityKey<TValidator, TExtractor>(authenticationScheme: authenticationScheme, displayName: null, configureOptions: null);
@@ -147,7 +165,9 @@ public static class AuthenticationBuilderExtensions
     /// <returns>
     /// The <see cref="AuthenticationBuilder"/> instance for chaining further authentication configuration.
     /// </returns>
-    public static AuthenticationBuilder AddSecurityKey<TValidator, TExtractor>(this AuthenticationBuilder builder, Action<SecurityKeyAuthenticationSchemeOptions>? configureOptions)
+    public static AuthenticationBuilder AddSecurityKey<TValidator, TExtractor>(
+        this AuthenticationBuilder builder,
+        Action<SecurityKeyAuthenticationSchemeOptions>? configureOptions)
         where TValidator : class, ISecurityKeyValidator
         where TExtractor : class, ISecurityKeyExtractor
         => builder.AddSecurityKey<TValidator, TExtractor>(authenticationScheme: SecurityKeyAuthenticationDefaults.AuthenticationScheme, displayName: null, configureOptions: configureOptions);
@@ -167,14 +187,28 @@ public static class AuthenticationBuilderExtensions
     /// <exception cref="ArgumentNullException">
     /// Thrown when <paramref name="builder"/> is <c>null</c>.
     /// </exception>
-    public static AuthenticationBuilder AddSecurityKey<TValidator, TExtractor>(this AuthenticationBuilder builder, string authenticationScheme, string? displayName, Action<SecurityKeyAuthenticationSchemeOptions>? configureOptions)
+    public static AuthenticationBuilder AddSecurityKey<TValidator, TExtractor>(
+        this AuthenticationBuilder builder,
+        string authenticationScheme,
+        string? displayName,
+        Action<SecurityKeyAuthenticationSchemeOptions>? configureOptions)
         where TValidator : class, ISecurityKeyValidator
         where TExtractor : class, ISecurityKeyExtractor
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        builder.Services.AddOptions<SecurityKeyAuthenticationSchemeOptions>(authenticationScheme);
+        // Register default services
         builder.Services.AddSecurityKey<TValidator, TExtractor>();
+
+        // Add the authentication scheme options to the service collection to ensure they are available for post-configuration
+        builder.Services.AddOptions<SecurityKeyAuthenticationSchemeOptions>(authenticationScheme);
+
+        // Register the keyed provider services for the specified authentication scheme
+        builder.Services.TryAddKeyedScoped<ISecurityKeyValidator, TValidator>(authenticationScheme);
+        builder.Services.TryAddKeyedScoped<ISecurityKeyExtractor, TExtractor>(authenticationScheme);
+
+        // Post-configure the authentication scheme options to set the ProviderServiceKey after the keyed provider is registered
+        builder.Services.PostConfigure<SecurityKeyAuthenticationSchemeOptions>(authenticationScheme, options => options.ProviderServiceKey = authenticationScheme);
 
         return builder.AddScheme<SecurityKeyAuthenticationSchemeOptions, SecurityKeyAuthenticationHandler>(authenticationScheme, displayName, configureOptions);
     }

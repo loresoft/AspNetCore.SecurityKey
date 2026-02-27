@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 
 namespace AspNetCore.SecurityKey;
@@ -59,11 +60,11 @@ public static class DependencyInjectionExtensions
         if (configure != null)
             services.Configure(configure);
 
-        services.AddSingleton<ISecurityKeyExtractor, TExtractor>();
-        services.AddSingleton<ISecurityKeyValidator, TValidator>();
+        services.TryAddSingleton<ISecurityKeyExtractor, TExtractor>();
+        services.TryAddSingleton<ISecurityKeyValidator, TValidator>();
 
         // used by SecurityKeyAttribute
-        services.AddSingleton<SecurityKeyAuthorizationFilter>();
+        services.TryAddSingleton<SecurityKeyAuthorizationFilter>();
 
         return services;
     }

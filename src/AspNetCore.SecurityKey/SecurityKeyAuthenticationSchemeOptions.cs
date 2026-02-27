@@ -10,5 +10,9 @@ namespace AspNetCore.SecurityKey;
 /// <seealso cref="Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions" />
 public class SecurityKeyAuthenticationSchemeOptions : AuthenticationSchemeOptions
 {
-
+    /// <summary>
+    /// The service key used to resolve a custom <see cref="ISecurityKeyExtractor"/> and <see cref="ISecurityKeyValidator"/> from the
+    /// dependency injection container. When set, the keyed service registered under this key is used instead of the default provider.
+    /// </summary>
+    public string? ProviderServiceKey { get; set; }
 }
