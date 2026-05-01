@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net;
 
 using Microsoft.AspNetCore.Http;
@@ -53,16 +54,46 @@ internal sealed class SecurityKeyMiddleware
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        var securityKey = _securityKeyExtractor.GetKey(context);
-        var ipAddress = _securityKeyExtractor.GetRemoteAddress(context);
+        using var activity = SecurityKeyDiagnostics.StartAuthenticationActivity(SecurityKeyDiagnostics.MiddlewareAuthenticationPattern);
+        var startTimestamp = Stopwatch.GetTimestamp();
 
-        if (await _securityKeyValidator.Validate(securityKey, ipAddress))
+        try
         {
-            await _next(context).ConfigureAwait(false);
-            return;
-        }
+            var securityKey = _securityKeyExtractor.GetKey(context);
+            var ipAddress = _securityKeyExtractor.GetRemoteAddress(context);
 
-        _logger.LogWarning("Invalid security key {SecurityKey} from IP {IPAddress}", securityKey, ipAddress);
-        context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+            if (await _securityKeyValidator.Validate(securityKey, ipAddress))
+            {
+                SecurityKeyDiagnostics.CompleteAuthentication(
+                    activity: activity,
+                    startTimestamp: startTimestamp,
+                    authenticationResult: SecurityKeyDiagnostics.AuthenticationResultSuccess,
+                    securityKey: securityKey);
+
+                await _next(context).ConfigureAwait(false);
+
+                return;
+            }
+
+            _logger.LogWarning("Invalid security key {SecurityKey} from IP {IPAddress}", securityKey, ipAddress);
+
+            SecurityKeyDiagnostics.CompleteAuthentication(
+                activity: activity,
+                startTimestamp: startTimestamp,
+                authenticationResult: SecurityKeyDiagnostics.AuthenticationResultFailure,
+                securityKey: securityKey,
+                failureReason: SecurityKeyDiagnostics.InvalidSecurityKeyFailureReason);
+
+            context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            SecurityKeyDiagnostics.RecordAuthenticationException(
+                activity: activity,
+                startTimestamp: startTimestamp,
+                exception: ex);
+
+            throw;
+        }
     }
 }

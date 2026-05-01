@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
@@ -50,14 +52,45 @@ public class SecurityKeyEndpointFilter : IEndpointFilter
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        var securityKey = _securityKeyExtractor.GetKey(context.HttpContext);
-        var ipAddress = _securityKeyExtractor.GetRemoteAddress(context.HttpContext);
+        using var activity = SecurityKeyDiagnostics.StartAuthenticationActivity(SecurityKeyDiagnostics.EndpointFilterAuthenticationPattern);
+        var startTimestamp = Stopwatch.GetTimestamp();
 
-        if (await _securityKeyValidator.Validate(securityKey, ipAddress))
-            return await next(context);
+        try
+        {
+            var securityKey = _securityKeyExtractor.GetKey(context.HttpContext);
+            var ipAddress = _securityKeyExtractor.GetRemoteAddress(context.HttpContext);
 
-        _logger.LogWarning("Invalid security key {SecurityKey} from IP {IPAddress}", securityKey, ipAddress);
-        return Results.Unauthorized();
+            if (await _securityKeyValidator.Validate(securityKey, ipAddress))
+            {
+                SecurityKeyDiagnostics.CompleteAuthentication(
+                    activity: activity,
+                    startTimestamp: startTimestamp,
+                    authenticationResult: SecurityKeyDiagnostics.AuthenticationResultSuccess,
+                    securityKey: securityKey);
+
+                return await next(context);
+            }
+
+            _logger.LogWarning("Invalid security key {SecurityKey} from IP {IPAddress}", securityKey, ipAddress);
+
+            SecurityKeyDiagnostics.CompleteAuthentication(
+                activity: activity,
+                startTimestamp: startTimestamp,
+                authenticationResult: SecurityKeyDiagnostics.AuthenticationResultFailure,
+                securityKey: securityKey,
+                failureReason: SecurityKeyDiagnostics.InvalidSecurityKeyFailureReason);
+
+            return Results.Unauthorized();
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            SecurityKeyDiagnostics.RecordAuthenticationException(
+                activity: activity,
+                startTimestamp: startTimestamp,
+                exception: ex);
+
+            throw;
+        }
     }
 }
 #endif

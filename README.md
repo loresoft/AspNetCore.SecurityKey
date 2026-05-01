@@ -19,6 +19,7 @@ A flexible and lightweight API key authentication library for ASP.NET Core appli
 - [Usage Patterns](#usage-patterns)
 - [Advanced Customization](#advanced-customization)
 - [OpenAPI/Swagger Integration](#openapiswagger-integration)
+- [OpenTelemetry Support](#opentelemetry-support)
 - [Best Practices](#best-practices)
 - [Troubleshooting](#troubleshooting)
 - [Examples Repository](#examples-repository)
@@ -29,7 +30,7 @@ A flexible and lightweight API key authentication library for ASP.NET Core appli
 
 AspNetCore.SecurityKey provides a complete API key authentication solution for ASP.NET Core applications with support for modern development patterns and best practices.
 
-**Key Features:**
+**Feature List:**
 
 - **Multiple Input Sources** - API keys via headers, query parameters, or cookies
 - **Flexible Authentication** - Works with ASP.NET Core's built-in authentication or as standalone middleware
@@ -37,6 +38,7 @@ AspNetCore.SecurityKey provides a complete API key authentication solution for A
 - **Extensible Design** - Custom validation and extraction logic support
 - **Rich Integration** - Controller attributes, middleware, and minimal API support
 - **OpenAPI Support** - Automatic Swagger/OpenAPI documentation generation (.NET 9+)
+- **OpenTelemetry Support** - Built-in activities, metrics, tags, and exception events for authentication diagnostics
 - **High Performance** - Minimal overhead with optional caching and timing-attack protection
 - **Multiple Deployment Patterns** - Attribute-based, middleware, or endpoint filters
 
@@ -248,6 +250,7 @@ IP whitelisting is configured using the enhanced configuration format in `appset
 ### Common Use Cases
 
 #### Development Environment
+
 Allow only local development machines:
 
 ```json
@@ -266,6 +269,7 @@ Allow only local development machines:
 ```
 
 #### Corporate Environment
+
 Allow only internal corporate networks:
 
 ```json
@@ -280,7 +284,6 @@ Allow only internal corporate networks:
   }
 }
 ```
-
 
 ### Reverse Proxy Considerations
 
@@ -309,7 +312,6 @@ app.UseSecurityKey();
 3. **Dynamic IPs**: Consider that client IPs may change, especially for mobile clients or users behind NAT
 4. **Proxy Headers**: Validate that your reverse proxy configuration correctly forwards real client IPs
 5. **Logging**: Monitor failed authentication attempts to detect potential security issues
-
 
 ## Usage Patterns
 
@@ -698,6 +700,62 @@ builder.Services.AddSwaggerGen(options =>
 
 The `SecurityKeyDocumentTransformer` automatically configures the OpenAPI specification to include API key authentication requirements, making it easy for developers to understand and test your API.
 
+## OpenTelemetry Support
+
+AspNetCore.SecurityKey emits tracing and metrics using the built-in .NET diagnostics APIs, so applications can export authentication telemetry with OpenTelemetry without adding a separate instrumentation package.
+
+### Instrumentation Names
+
+Use these stable names when configuring OpenTelemetry:
+
+- **ActivitySource**: `AspNetCore.SecurityKey`
+- **Meter**: `AspNetCore.SecurityKey`
+
+### Telemetry Features
+
+- **Authentication traces** for middleware, endpoint filter, MVC filter, and authentication handler flows
+- **Success and failure result tags** for each authentication attempt
+- **Failure reason tags** for invalid API keys and authentication errors
+- **Hashed API key tags** for tracking key usage without exposing raw keys
+- **Exception events** added to activities when unexpected authentication errors occur
+- **Request counter** for total SecurityKey authentication attempts
+- **Failure counter** for failed SecurityKey authentication attempts
+- **Duration histogram** for authentication latency in milliseconds
+
+### Metrics
+
+| Metric                                | Unit       | Description                                            |
+| ------------------------------------- | ---------- | ------------------------------------------------------ |
+| `securitykey.authentication.requests` | `requests` | Number of SecurityKey authentication requests handled. |
+| `securitykey.authentication.failures` | `failures` | Number of failed SecurityKey authentication requests.  |
+| `securitykey.authentication.duration` | `ms`       | Duration of SecurityKey authentication attempts.       |
+
+### Tags
+
+| Tag                               | Description                                                                    |
+| --------------------------------- | ------------------------------------------------------------------------------ |
+| `securitykey.auth.scheme`         | Authentication scheme name when using the authentication handler.              |
+| `securitykey.auth.result`         | Authentication result, such as `success` or `failure`.                         |
+| `securitykey.auth.failure_reason` | Failure reason, such as `invalid_client` or `authentication_error`.            |
+| `securitykey.auth.pattern`        | Integration pattern, such as `middleware`, `endpoint_filter`, or `mvc_filter`. |
+| `securitykey.api_key.hash`        | SHA-256 hash of the API key for tracking usage without exposing the raw key.   |
+
+### OpenTelemetry Configuration Example
+
+```csharp
+builder.Services.AddOpenTelemetry()
+    .WithTracing(tracing => tracing
+        .AddSource("AspNetCore.SecurityKey")
+        .AddAspNetCoreInstrumentation()
+        .AddOtlpExporter())
+    .WithMetrics(metrics => metrics
+        .AddMeter("AspNetCore.SecurityKey")
+        .AddAspNetCoreInstrumentation()
+        .AddOtlpExporter());
+```
+
+> The example assumes your application already references the OpenTelemetry packages required by the exporters and instrumentation you choose.
+
 ## Best Practices
 
 ### Security Considerations
@@ -708,6 +766,7 @@ The `SecurityKeyDocumentTransformer` automatically configures the OpenAPI specif
 4. **Rate Limiting**: Implement rate limiting to prevent abuse
 5. **IP Whitelisting**: Use IP restrictions for additional security when possible
 6. **Timing Attack Protection**: The library uses cryptographic operations to prevent timing attacks
+7. **Telemetry Hygiene**: Avoid recording raw API keys in custom telemetry tags or logs
 
 ### Configuration Best Practices
 
@@ -721,6 +780,7 @@ The `SecurityKeyDocumentTransformer` automatically configures the OpenAPI specif
 1. **Caching**: Enable caching for authentication results when using custom validators
 2. **Connection Pooling**: Use connection pooling for database-backed validators
 3. **Async Operations**: Leverage async/await patterns for I/O operations
+4. **Observability**: Export SecurityKey traces and metrics with OpenTelemetry to monitor authentication latency and failures
 
 ## Troubleshooting
 

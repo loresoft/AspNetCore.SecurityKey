@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 
@@ -38,37 +39,108 @@ public class SecurityKeyAuthenticationHandler : AuthenticationHandler<SecurityKe
     /// </returns>
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        // Resolve provider when configured; otherwise use the default registration.
-        var keyExtractor = string.IsNullOrEmpty(Options.ProviderServiceKey)
-            ? Context.RequestServices.GetRequiredService<ISecurityKeyExtractor>()
-            : Context.RequestServices.GetRequiredKeyedService<ISecurityKeyExtractor>(Options.ProviderServiceKey);
+        var startTimestamp = 0L;
+        Activity? activity = null;
 
-        // Extract the security key from the request using the configured extractor
-        var securityKey = keyExtractor.GetKey(Context);
-
-        // If no security key is provided, return no result
-        if (string.IsNullOrEmpty(securityKey))
-            return AuthenticateResult.NoResult();
-
-        var ipAddress = keyExtractor.GetRemoteAddress(Context);
-
-        // Resolve provider when configured; otherwise use the default registration.
-        var keyValidator = string.IsNullOrEmpty(Options.ProviderServiceKey)
-            ? Context.RequestServices.GetRequiredService<ISecurityKeyValidator>()
-            : Context.RequestServices.GetRequiredKeyedService<ISecurityKeyValidator>(Options.ProviderServiceKey);
-
-        // Authenticate the security key and get the claims identity
-        var identity = await keyValidator.Authenticate(securityKey, ipAddress, Scheme.Name, Context.RequestAborted);
-        if (!identity.IsAuthenticated)
+        try
         {
-            Logger.LogWarning("Invalid security key {SecurityKey} from IP {IPAddress}", securityKey, ipAddress);
-            return InvalidSecurityKey;
+            // Resolve provider when configured; otherwise use the default registration.
+            var keyExtractor = string.IsNullOrEmpty(Options.ProviderServiceKey)
+                ? Context.RequestServices.GetRequiredService<ISecurityKeyExtractor>()
+                : Context.RequestServices.GetRequiredKeyedService<ISecurityKeyExtractor>(Options.ProviderServiceKey);
+
+            // Extract the security key from the request using the configured extractor
+            var securityKey = keyExtractor.GetKey(Context);
+
+            // If no security key is provided, return no result
+            if (string.IsNullOrEmpty(securityKey))
+                return AuthenticateResult.NoResult();
+
+            startTimestamp = Stopwatch.GetTimestamp();
+            activity = SecurityKeyDiagnostics.ActivitySource.StartActivity(SecurityKeyDiagnostics.AuthenticationActivityName, ActivityKind.Server);
+
+            activity?.SetTag(SecurityKeyDiagnostics.AuthenticationSchemeTagName, Scheme.Name);
+
+            var ipAddress = keyExtractor.GetRemoteAddress(Context);
+
+            // Resolve provider when configured; otherwise use the default registration.
+            var keyValidator = string.IsNullOrEmpty(Options.ProviderServiceKey)
+                ? Context.RequestServices.GetRequiredService<ISecurityKeyValidator>()
+                : Context.RequestServices.GetRequiredKeyedService<ISecurityKeyValidator>(Options.ProviderServiceKey);
+
+            // Authenticate the security key and get the claims identity
+            var identity = await keyValidator.Authenticate(securityKey, ipAddress, Scheme.Name, Context.RequestAborted);
+            var securityKeyHash = SecurityKeyDiagnostics.ComputeSecurityKeyHash(securityKey);
+
+            if (!identity.IsAuthenticated)
+            {
+                Logger.LogWarning("Invalid security key {SecurityKey} from IP {IPAddress}", securityKey, ipAddress);
+
+                return CompleteAuthentication(
+                    result: InvalidSecurityKey,
+                    activity: activity,
+                    startTimestamp: startTimestamp,
+                    authenticationResult: SecurityKeyDiagnostics.AuthenticationResultFailure,
+                    securityKeyHash: securityKeyHash,
+                    failureReason: SecurityKeyDiagnostics.InvalidSecurityKeyFailureReason);
+            }
+
+            // create a user claim for the security key
+            var principal = new ClaimsPrincipal(identity);
+            var ticket = new AuthenticationTicket(principal, Scheme.Name);
+
+            return CompleteAuthentication(
+                result: AuthenticateResult.Success(ticket),
+                activity: activity,
+                startTimestamp: startTimestamp,
+                authenticationResult: SecurityKeyDiagnostics.AuthenticationResultSuccess,
+                securityKeyHash: securityKeyHash);
+
         }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            activity?.AddException(ex);
 
-        // create a user claim for the security key
-        var principal = new ClaimsPrincipal(identity);
-        var ticket = new AuthenticationTicket(principal, Scheme.Name);
+            CompleteAuthentication(
+                result: AuthenticateResult.Fail(ex),
+                activity: activity,
+                startTimestamp: startTimestamp,
+                authenticationResult: SecurityKeyDiagnostics.AuthenticationResultFailure,
+                failureReason: SecurityKeyDiagnostics.AuthenticationErrorFailureReason);
 
-        return AuthenticateResult.Success(ticket);
+            throw;
+        }
+        finally
+        {
+            activity?.Dispose();
+        }
+    }
+
+    private static AuthenticateResult CompleteAuthentication(
+        AuthenticateResult result,
+        Activity? activity,
+        long startTimestamp,
+        string authenticationResult,
+        string? securityKeyHash = null,
+        string? failureReason = null)
+    {
+        activity?.SetTag(SecurityKeyDiagnostics.AuthenticationResultTagName, authenticationResult);
+
+        if (securityKeyHash is not null)
+            activity?.SetTag(SecurityKeyDiagnostics.SecurityKeyHashTagName, securityKeyHash);
+
+        if (failureReason is not null)
+            activity?.SetTag(SecurityKeyDiagnostics.AuthenticationFailureReasonTagName, failureReason);
+
+        if (authenticationResult == SecurityKeyDiagnostics.AuthenticationResultFailure)
+            activity?.SetStatus(ActivityStatusCode.Error, failureReason);
+
+        SecurityKeyDiagnostics.RecordAuthenticationMetrics(
+            startTimestamp: startTimestamp,
+            authenticationResult: authenticationResult,
+            failureReason: failureReason,
+            securityKeyHash: securityKeyHash);
+
+        return result;
     }
 }

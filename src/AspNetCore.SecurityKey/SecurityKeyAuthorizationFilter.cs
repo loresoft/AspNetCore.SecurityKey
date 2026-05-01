@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Logging;
@@ -48,12 +50,44 @@ public class SecurityKeyAuthorizationFilter : IAsyncAuthorizationFilter
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        var securityKey = _securityKeyExtractor.GetKey(context.HttpContext);
-        var ipAddress = _securityKeyExtractor.GetRemoteAddress(context.HttpContext);
+        using var activity = SecurityKeyDiagnostics.StartAuthenticationActivity(SecurityKeyDiagnostics.MvcFilterAuthenticationPattern);
+        var startTimestamp = Stopwatch.GetTimestamp();
 
-        if (await _securityKeyValidator.Validate(securityKey, ipAddress))
-            return;
+        try
+        {
+            var securityKey = _securityKeyExtractor.GetKey(context.HttpContext);
+            var ipAddress = _securityKeyExtractor.GetRemoteAddress(context.HttpContext);
 
-        context.Result = new UnauthorizedResult();
+            if (await _securityKeyValidator.Validate(securityKey, ipAddress))
+            {
+                SecurityKeyDiagnostics.CompleteAuthentication(
+                    activity: activity,
+                    startTimestamp: startTimestamp,
+                    authenticationResult: SecurityKeyDiagnostics.AuthenticationResultSuccess,
+                    securityKey: securityKey);
+
+                return;
+            }
+
+            _logger.LogWarning("Invalid security key {SecurityKey} from IP {IPAddress}", securityKey, ipAddress);
+
+            SecurityKeyDiagnostics.CompleteAuthentication(
+                activity: activity,
+                startTimestamp: startTimestamp,
+                authenticationResult: SecurityKeyDiagnostics.AuthenticationResultFailure,
+                securityKey: securityKey,
+                failureReason: SecurityKeyDiagnostics.InvalidSecurityKeyFailureReason);
+
+            context.Result = new UnauthorizedResult();
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            SecurityKeyDiagnostics.RecordAuthenticationException(
+                activity: activity,
+                startTimestamp: startTimestamp,
+                exception: ex);
+
+            throw;
+        }
     }
 }
