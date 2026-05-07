@@ -22,6 +22,7 @@ public class SecurityKeyDiagnosticsTests
     private const string AuthenticationResultFailure = "failure";
     private const string InvalidSecurityKeyFailureReason = "invalid_client";
     private const string AuthenticationErrorFailureReason = "authentication_error";
+    private const string Endpoint = "/diagnostics";
 
     [Fact]
     public async Task HandleAuthenticateAsync_MissingSecurityKey_DoesNotEmitActivity()
@@ -57,7 +58,8 @@ public class SecurityKeyDiagnosticsTests
         Assert.Equal(AuthenticationActivityName, activity.OperationName);
         Assert.Equal(AuthenticationResultSuccess, GetTagValue(activity, SecurityKeyDiagnostics.AuthenticationResultTagName));
         Assert.Equal(SecurityKeyAuthenticationDefaults.AuthenticationScheme, GetTagValue(activity, SecurityKeyDiagnostics.AuthenticationSchemeTagName));
-        Assert.Equal(ComputeSecurityKeyHash(securityKey), GetTagValue(activity, SecurityKeyDiagnostics.SecurityKeyHashTagName));
+        Assert.Equal(ComputeSecurityKeyHash(securityKey), GetTagValue(activity, SecurityKeyDiagnostics.ClientTagName));
+        Assert.Equal(Endpoint, GetTagValue(activity, SecurityKeyDiagnostics.EndpointTagName));
         Assert.DoesNotContain(activity.TagObjects, tag => tag.Value as string == securityKey);
     }
 
@@ -75,7 +77,8 @@ public class SecurityKeyDiagnosticsTests
 
         Assert.Equal(AuthenticationResultFailure, GetTagValue(activity, SecurityKeyDiagnostics.AuthenticationResultTagName));
         Assert.Equal(InvalidSecurityKeyFailureReason, GetTagValue(activity, SecurityKeyDiagnostics.AuthenticationFailureReasonTagName));
-        Assert.Equal(ComputeSecurityKeyHash(securityKey), GetTagValue(activity, SecurityKeyDiagnostics.SecurityKeyHashTagName));
+        Assert.Equal(ComputeSecurityKeyHash(securityKey), GetTagValue(activity, SecurityKeyDiagnostics.ClientTagName));
+        Assert.Equal(Endpoint, GetTagValue(activity, SecurityKeyDiagnostics.EndpointTagName));
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
     }
 
@@ -85,12 +88,13 @@ public class SecurityKeyDiagnosticsTests
         var context = new SecurityKeyAuthenticationHandlerTestContext { AuthenticationException = new InvalidOperationException("Authentication failed.") };
         context.HttpContext.Request.Headers.Append(context.Options.HeaderName, "valid-key");
 
-        var activities = await AuthenticateWithActivityListener(context, expectException: true);
+        var activities = await AuthenticateWithActivityListener(context);
 
         var activity = Assert.Single(activities.Activities);
 
         Assert.Equal(AuthenticationResultFailure, GetTagValue(activity, SecurityKeyDiagnostics.AuthenticationResultTagName));
         Assert.Equal(AuthenticationErrorFailureReason, GetTagValue(activity, SecurityKeyDiagnostics.AuthenticationFailureReasonTagName));
+        Assert.Equal(Endpoint, GetTagValue(activity, SecurityKeyDiagnostics.EndpointTagName));
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
     }
 
@@ -104,11 +108,13 @@ public class SecurityKeyDiagnosticsTests
 
         var measurements = await AuthenticateWithMeterListener(context);
 
-        var request = Assert.Single(measurements, m => m.InstrumentName == SecurityKeyDiagnostics.AuthenticationRequestCounterName);
+        var request = Assert.Single(measurements, m => m.InstrumentName == SecurityKeyDiagnostics.AuthenticationRequestsName);
 
         Assert.Equal(1, request.Value);
+        Assert.Equal(SecurityKeyAuthenticationDefaults.AuthenticationScheme, request.Tags[SecurityKeyDiagnostics.AuthenticationSchemeTagName]);
         Assert.Equal(AuthenticationResultSuccess, request.Tags[SecurityKeyDiagnostics.AuthenticationResultTagName]);
-        Assert.Equal(ComputeSecurityKeyHash(securityKey), request.Tags[SecurityKeyDiagnostics.SecurityKeyHashTagName]);
+        Assert.Equal(ComputeSecurityKeyHash(securityKey), request.Tags[SecurityKeyDiagnostics.ClientTagName]);
+        Assert.Equal(Endpoint, request.Tags[SecurityKeyDiagnostics.EndpointTagName]);
     }
 
     [Fact]
@@ -121,25 +127,29 @@ public class SecurityKeyDiagnosticsTests
 
         var measurements = await AuthenticateWithMeterListener(context);
 
-        var request = Assert.Single(measurements, m => m.InstrumentName == SecurityKeyDiagnostics.AuthenticationRequestCounterName);
+        var request = Assert.Single(measurements, m => m.InstrumentName == SecurityKeyDiagnostics.AuthenticationRequestsName);
 
+        Assert.Equal(SecurityKeyAuthenticationDefaults.AuthenticationScheme, request.Tags[SecurityKeyDiagnostics.AuthenticationSchemeTagName]);
         Assert.Equal(AuthenticationResultFailure, request.Tags[SecurityKeyDiagnostics.AuthenticationResultTagName]);
         Assert.Equal(InvalidSecurityKeyFailureReason, request.Tags[SecurityKeyDiagnostics.AuthenticationFailureReasonTagName]);
-        Assert.Equal(ComputeSecurityKeyHash(securityKey), request.Tags[SecurityKeyDiagnostics.SecurityKeyHashTagName]);
+        Assert.Equal(ComputeSecurityKeyHash(securityKey), request.Tags[SecurityKeyDiagnostics.ClientTagName]);
+        Assert.Equal(Endpoint, request.Tags[SecurityKeyDiagnostics.EndpointTagName]);
 
-        var failure = Assert.Single(measurements, m => m.InstrumentName == SecurityKeyDiagnostics.AuthenticationFailureCounterName);
+        var failure = Assert.Single(measurements, m => m.InstrumentName == SecurityKeyDiagnostics.AuthenticationFailuresName);
 
         Assert.Equal(1, failure.Value);
+        Assert.Equal(SecurityKeyAuthenticationDefaults.AuthenticationScheme, failure.Tags[SecurityKeyDiagnostics.AuthenticationSchemeTagName]);
         Assert.Equal(AuthenticationResultFailure, failure.Tags[SecurityKeyDiagnostics.AuthenticationResultTagName]);
         Assert.Equal(InvalidSecurityKeyFailureReason, failure.Tags[SecurityKeyDiagnostics.AuthenticationFailureReasonTagName]);
-        Assert.Equal(ComputeSecurityKeyHash(securityKey), failure.Tags[SecurityKeyDiagnostics.SecurityKeyHashTagName]);
+        Assert.Equal(ComputeSecurityKeyHash(securityKey), failure.Tags[SecurityKeyDiagnostics.ClientTagName]);
+        Assert.Equal(Endpoint, failure.Tags[SecurityKeyDiagnostics.EndpointTagName]);
     }
 
-    private static async Task<ActivityCollector> AuthenticateWithActivityListener(SecurityKeyAuthenticationHandlerTestContext context, bool expectException = false)
+    private static async Task<ActivityCollector> AuthenticateWithActivityListener(SecurityKeyAuthenticationHandlerTestContext context)
     {
         using var collector = new ActivityCollector();
 
-        await AuthenticateAsync(context, expectException);
+        await AuthenticateAsync(context);
 
         return collector;
     }
@@ -172,8 +182,10 @@ public class SecurityKeyDiagnosticsTests
         return measurements;
     }
 
-    private static async Task AuthenticateAsync(SecurityKeyAuthenticationHandlerTestContext context, bool expectException = false)
+    private static async Task AuthenticateAsync(SecurityKeyAuthenticationHandlerTestContext context)
     {
+        context.HttpContext.Request.Path = Endpoint;
+
         var services = new ServiceCollection()
             .AddSingleton<ISecurityKeyExtractor>(new TestSecurityKeyExtractor(context.Options))
             .AddSingleton<ISecurityKeyValidator>(new TestSecurityKeyValidator(context))
@@ -192,10 +204,7 @@ public class SecurityKeyDiagnosticsTests
             scheme: scheme,
             context: context.HttpContext);
 
-        if (expectException)
-            await Assert.ThrowsAsync<InvalidOperationException>(() => handler.AuthenticateAsync());
-        else
-            await handler.AuthenticateAsync();
+        await handler.AuthenticateAsync();
     }
 
     private static object? GetTagValue(Activity activity, string key)
@@ -226,7 +235,7 @@ public class SecurityKeyDiagnosticsTests
 
             _listener = new ActivityListener
             {
-                ShouldListenTo = source => source.Name == SecurityKeyDiagnostics.ActivitySourceName,
+                ShouldListenTo = source => source.Name == SecurityKeyDiagnostics.SourceName,
                 Sample = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
                 ActivityStopped = activity => Activities.Add(activity)
             };

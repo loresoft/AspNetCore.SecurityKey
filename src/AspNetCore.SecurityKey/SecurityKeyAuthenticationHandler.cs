@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text.Encodings.Web;
 
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -16,6 +17,7 @@ namespace AspNetCore.SecurityKey;
 public class SecurityKeyAuthenticationHandler : AuthenticationHandler<SecurityKeyAuthenticationSchemeOptions>
 {
     private static readonly AuthenticateResult InvalidSecurityKey = AuthenticateResult.Fail("Invalid Security Key");
+    private static readonly AuthenticateResult AuthenticationError = AuthenticateResult.Fail("Authentication error");
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SecurityKeyAuthenticationHandler"/> class.
@@ -40,6 +42,7 @@ public class SecurityKeyAuthenticationHandler : AuthenticationHandler<SecurityKe
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
         var startTimestamp = 0L;
+        string? endpoint = null;
         Activity? activity = null;
 
         try
@@ -59,7 +62,10 @@ public class SecurityKeyAuthenticationHandler : AuthenticationHandler<SecurityKe
             startTimestamp = Stopwatch.GetTimestamp();
             activity = SecurityKeyDiagnostics.ActivitySource.StartActivity(SecurityKeyDiagnostics.AuthenticationActivityName, ActivityKind.Server);
 
+            endpoint = GetEndpoint();
+
             activity?.SetTag(SecurityKeyDiagnostics.AuthenticationSchemeTagName, Scheme.Name);
+            activity?.SetTag(SecurityKeyDiagnostics.EndpointTagName, endpoint);
 
             var ipAddress = keyExtractor.GetRemoteAddress(Context);
 
@@ -70,7 +76,6 @@ public class SecurityKeyAuthenticationHandler : AuthenticationHandler<SecurityKe
 
             // Authenticate the security key and get the claims identity
             var identity = await keyValidator.Authenticate(securityKey, ipAddress, Scheme.Name, Context.RequestAborted);
-            var securityKeyHash = SecurityKeyDiagnostics.ComputeSecurityKeyHash(securityKey);
 
             if (!identity.IsAuthenticated)
             {
@@ -81,7 +86,8 @@ public class SecurityKeyAuthenticationHandler : AuthenticationHandler<SecurityKe
                     activity: activity,
                     startTimestamp: startTimestamp,
                     authenticationResult: SecurityKeyDiagnostics.AuthenticationResultFailure,
-                    securityKeyHash: securityKeyHash,
+                    securityKey: securityKey,
+                    endpoint: endpoint,
                     failureReason: SecurityKeyDiagnostics.InvalidSecurityKeyFailureReason);
             }
 
@@ -94,21 +100,25 @@ public class SecurityKeyAuthenticationHandler : AuthenticationHandler<SecurityKe
                 activity: activity,
                 startTimestamp: startTimestamp,
                 authenticationResult: SecurityKeyDiagnostics.AuthenticationResultSuccess,
-                securityKeyHash: securityKeyHash);
+                securityKey: securityKey,
+                endpoint: endpoint);
 
+        }
+        catch (OperationCanceledException) when (Context.RequestAborted.IsCancellationRequested)
+        {
+            throw;
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             activity?.AddException(ex);
 
-            CompleteAuthentication(
-                result: AuthenticateResult.Fail(ex),
+            return CompleteAuthentication(
+                result: AuthenticationError,
                 activity: activity,
                 startTimestamp: startTimestamp,
                 authenticationResult: SecurityKeyDiagnostics.AuthenticationResultFailure,
+                endpoint: endpoint,
                 failureReason: SecurityKeyDiagnostics.AuthenticationErrorFailureReason);
-
-            throw;
         }
         finally
         {
@@ -116,31 +126,31 @@ public class SecurityKeyAuthenticationHandler : AuthenticationHandler<SecurityKe
         }
     }
 
-    private static AuthenticateResult CompleteAuthentication(
+    private AuthenticateResult CompleteAuthentication(
         AuthenticateResult result,
         Activity? activity,
         long startTimestamp,
         string authenticationResult,
-        string? securityKeyHash = null,
+        string? securityKey = null,
+        string? endpoint = null,
         string? failureReason = null)
     {
-        activity?.SetTag(SecurityKeyDiagnostics.AuthenticationResultTagName, authenticationResult);
-
-        if (securityKeyHash is not null)
-            activity?.SetTag(SecurityKeyDiagnostics.SecurityKeyHashTagName, securityKeyHash);
-
-        if (failureReason is not null)
-            activity?.SetTag(SecurityKeyDiagnostics.AuthenticationFailureReasonTagName, failureReason);
-
-        if (authenticationResult == SecurityKeyDiagnostics.AuthenticationResultFailure)
-            activity?.SetStatus(ActivityStatusCode.Error, failureReason);
-
-        SecurityKeyDiagnostics.RecordAuthenticationMetrics(
+        SecurityKeyDiagnostics.CompleteAuthentication(
+            activity: activity,
             startTimestamp: startTimestamp,
             authenticationResult: authenticationResult,
-            failureReason: failureReason,
-            securityKeyHash: securityKeyHash);
+            scheme: Scheme.Name,
+            securityKey: securityKey,
+            endpoint: endpoint,
+            failureReason: failureReason);
 
         return result;
+    }
+
+    private string GetEndpoint()
+    {
+        return Context.GetEndpoint()?.DisplayName
+            ?? Request.Path.Value
+            ?? "unknown";
     }
 }

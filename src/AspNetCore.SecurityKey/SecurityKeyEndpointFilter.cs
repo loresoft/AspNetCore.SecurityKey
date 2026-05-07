@@ -54,6 +54,9 @@ public class SecurityKeyEndpointFilter : IEndpointFilter
 
         using var activity = SecurityKeyDiagnostics.StartAuthenticationActivity(SecurityKeyDiagnostics.EndpointFilterAuthenticationPattern);
         var startTimestamp = Stopwatch.GetTimestamp();
+        var endpoint = GetEndpoint(context.HttpContext);
+
+        activity?.SetTag(SecurityKeyDiagnostics.EndpointTagName, endpoint);
 
         try
         {
@@ -66,7 +69,8 @@ public class SecurityKeyEndpointFilter : IEndpointFilter
                     activity: activity,
                     startTimestamp: startTimestamp,
                     authenticationResult: SecurityKeyDiagnostics.AuthenticationResultSuccess,
-                    securityKey: securityKey);
+                    securityKey: securityKey,
+                    endpoint: endpoint);
 
                 return await next(context);
             }
@@ -78,6 +82,7 @@ public class SecurityKeyEndpointFilter : IEndpointFilter
                 startTimestamp: startTimestamp,
                 authenticationResult: SecurityKeyDiagnostics.AuthenticationResultFailure,
                 securityKey: securityKey,
+                endpoint: endpoint,
                 failureReason: SecurityKeyDiagnostics.InvalidSecurityKeyFailureReason);
 
             return Results.Unauthorized();
@@ -87,10 +92,18 @@ public class SecurityKeyEndpointFilter : IEndpointFilter
             SecurityKeyDiagnostics.RecordAuthenticationException(
                 activity: activity,
                 startTimestamp: startTimestamp,
-                exception: ex);
+                exception: ex,
+                endpoint: endpoint);
 
             throw;
         }
+    }
+
+    private static string GetEndpoint(HttpContext context)
+    {
+        return context.GetEndpoint()?.DisplayName
+            ?? context.Request.Path.Value
+            ?? "unknown";
     }
 }
 #endif

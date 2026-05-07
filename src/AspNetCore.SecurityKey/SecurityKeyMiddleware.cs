@@ -56,6 +56,9 @@ internal sealed class SecurityKeyMiddleware
 
         using var activity = SecurityKeyDiagnostics.StartAuthenticationActivity(SecurityKeyDiagnostics.MiddlewareAuthenticationPattern);
         var startTimestamp = Stopwatch.GetTimestamp();
+        var endpoint = GetEndpoint(context);
+
+        activity?.SetTag(SecurityKeyDiagnostics.EndpointTagName, endpoint);
 
         try
         {
@@ -68,7 +71,8 @@ internal sealed class SecurityKeyMiddleware
                     activity: activity,
                     startTimestamp: startTimestamp,
                     authenticationResult: SecurityKeyDiagnostics.AuthenticationResultSuccess,
-                    securityKey: securityKey);
+                    securityKey: securityKey,
+                    endpoint: endpoint);
 
                 await _next(context).ConfigureAwait(false);
 
@@ -82,6 +86,7 @@ internal sealed class SecurityKeyMiddleware
                 startTimestamp: startTimestamp,
                 authenticationResult: SecurityKeyDiagnostics.AuthenticationResultFailure,
                 securityKey: securityKey,
+                endpoint: endpoint,
                 failureReason: SecurityKeyDiagnostics.InvalidSecurityKeyFailureReason);
 
             context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
@@ -91,9 +96,17 @@ internal sealed class SecurityKeyMiddleware
             SecurityKeyDiagnostics.RecordAuthenticationException(
                 activity: activity,
                 startTimestamp: startTimestamp,
-                exception: ex);
+                exception: ex,
+                endpoint: endpoint);
 
             throw;
         }
+    }
+
+    private static string GetEndpoint(HttpContext context)
+    {
+        return context.GetEndpoint()?.DisplayName
+            ?? context.Request.Path.Value
+            ?? "unknown";
     }
 }

@@ -13,7 +13,7 @@ public static class SecurityKeyDiagnostics
     /// <summary>
     /// The activity source name used by SecurityKey diagnostics.
     /// </summary>
-    public const string ActivitySourceName = "AspNetCore.SecurityKey";
+    public const string SourceName = "AspNetCore.SecurityKey";
 
     /// <summary>
     /// The meter name used by SecurityKey diagnostics.
@@ -24,17 +24,17 @@ public static class SecurityKeyDiagnostics
     /// <summary>
     /// The authentication request counter name.
     /// </summary>
-    public const string AuthenticationRequestCounterName = "securitykey.authentication.requests";
+    public const string AuthenticationRequestsName = "securitykey.auth.requests";
 
     /// <summary>
     /// The authentication failure counter name.
     /// </summary>
-    public const string AuthenticationFailureCounterName = "securitykey.authentication.failures";
+    public const string AuthenticationFailuresName = "securitykey.auth.failures";
 
     /// <summary>
     /// The authentication duration histogram name.
     /// </summary>
-    public const string AuthenticationDurationHistogramName = "securitykey.authentication.duration";
+    public const string AuthenticationDurationName = "securitykey.auth.duration";
 
     /// <summary>
     /// The authentication scheme tag name.
@@ -57,9 +57,19 @@ public static class SecurityKeyDiagnostics
     public const string AuthenticationPatternTagName = "securitykey.auth.pattern";
 
     /// <summary>
+    /// The tag name for the resolved client.
+    /// </summary>
+    public const string ClientTagName = "securitykey.client";
+
+    /// <summary>
+    /// The tag name for the resolved endpoint.
+    /// </summary>
+    public const string EndpointTagName = "securitykey.endpoint";
+
+    /// <summary>
     /// The hashed security API key tag name.
     /// </summary>
-    public const string SecurityKeyHashTagName = "securitykey.api_key.hash";
+    public const string SecurityKeyHashTagName = ClientTagName;
 
     internal const string AuthenticationActivityName = "AspNetCore.SecurityKey.Authenticate";
     internal const string AuthenticationResultSuccess = "success";
@@ -70,21 +80,21 @@ public static class SecurityKeyDiagnostics
     internal const string EndpointFilterAuthenticationPattern = "endpoint_filter";
     internal const string MvcFilterAuthenticationPattern = "mvc_filter";
 
-    internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, ThisAssembly.FileVersion);
+    internal static readonly ActivitySource ActivitySource = new(SourceName, ThisAssembly.FileVersion);
     internal static readonly Meter Meter = new(MeterName, ThisAssembly.FileVersion);
 
     internal static readonly Counter<long> AuthenticationRequestCounter = Meter.CreateCounter<long>(
-        name: AuthenticationRequestCounterName,
-        unit: "requests",
-        description: "Number of SecurityKey authentication requests handled.");
+        name: AuthenticationRequestsName,
+        unit: "{request}",
+        description: "Number of SecurityKey authentication attempts.");
 
     internal static readonly Counter<long> AuthenticationFailureCounter = Meter.CreateCounter<long>(
-        name: AuthenticationFailureCounterName,
-        unit: "failures",
-        description: "Number of failed SecurityKey authentication requests.");
+        name: AuthenticationFailuresName,
+        unit: "{failure}",
+        description: "Number of failed SecurityKey authentication attempts.");
 
     internal static readonly Histogram<double> AuthenticationDurationHistogram = Meter.CreateHistogram<double>(
-        name: AuthenticationDurationHistogramName,
+        name: AuthenticationDurationName,
         unit: "ms",
         description: "Duration of SecurityKey authentication attempts.");
 
@@ -100,14 +110,22 @@ public static class SecurityKeyDiagnostics
         Activity? activity,
         long startTimestamp,
         string authenticationResult,
+        string? scheme = null,
         string? securityKey = null,
+        string? endpoint = null,
         string? failureReason = null)
     {
+        if (!string.IsNullOrWhiteSpace(scheme))
+            activity?.SetTag(AuthenticationSchemeTagName, scheme);
+
         activity?.SetTag(AuthenticationResultTagName, authenticationResult);
 
-        var securityKeyHash = ComputeSecurityKeyHash(securityKey);
-        if (securityKeyHash is not null)
-            activity?.SetTag(SecurityKeyHashTagName, securityKeyHash);
+        var client = ComputeSecurityKeyHash(securityKey);
+        if (client is not null)
+            activity?.SetTag(ClientTagName, client);
+
+        if (!string.IsNullOrWhiteSpace(endpoint))
+            activity?.SetTag(EndpointTagName, endpoint);
 
         if (failureReason is not null)
             activity?.SetTag(AuthenticationFailureReasonTagName, failureReason);
@@ -115,13 +133,16 @@ public static class SecurityKeyDiagnostics
         if (authenticationResult == AuthenticationResultFailure)
             activity?.SetStatus(ActivityStatusCode.Error, failureReason);
 
-        RecordAuthenticationMetrics(startTimestamp, authenticationResult, failureReason, securityKeyHash);
+        RecordAuthentication(scheme, authenticationResult, failureReason, startTimestamp, endpoint, client);
     }
 
     internal static void RecordAuthenticationException(
         Activity? activity,
         long startTimestamp,
-        Exception exception)
+        Exception exception,
+        string? scheme = null,
+        string? securityKey = null,
+        string? endpoint = null)
     {
         activity?.AddException(exception);
 
@@ -129,47 +150,51 @@ public static class SecurityKeyDiagnostics
             activity,
             startTimestamp,
             AuthenticationResultFailure,
-            AuthenticationErrorFailureReason);
+            scheme,
+            securityKey,
+            endpoint,
+            failureReason: AuthenticationErrorFailureReason);
     }
 
-    internal static void RecordAuthenticationMetrics(
-        long startTimestamp,
-        string authenticationResult,
+    internal static void RecordAuthentication(
+        string? scheme,
+        string result,
         string? failureReason,
-        string? securityKeyHash = null)
+        long startTimestamp,
+        string? endpoint = null,
+        string? client = null)
     {
-        if (!AuthenticationRequestCounter.Enabled
-            && !AuthenticationFailureCounter.Enabled
-            && !AuthenticationDurationHistogram.Enabled)
+        if (!AuthenticationRequestCounter.Enabled &&
+            !AuthenticationFailureCounter.Enabled &&
+            !AuthenticationDurationHistogram.Enabled)
         {
             return;
         }
 
-        var tags = new TagList
-        {
-            { AuthenticationResultTagName, authenticationResult }
-        };
+        TagList tags =
+        [
+            new(AuthenticationResultTagName, result)
+        ];
+
+        if (!string.IsNullOrWhiteSpace(scheme))
+            tags.Add(new(AuthenticationSchemeTagName, scheme));
 
         if (failureReason is not null)
-            tags.Add(AuthenticationFailureReasonTagName, failureReason);
+            tags.Add(new(AuthenticationFailureReasonTagName, failureReason));
 
-        if (securityKeyHash is not null)
-            tags.Add(SecurityKeyHashTagName, securityKeyHash);
+        if (!string.IsNullOrWhiteSpace(endpoint))
+            tags.Add(new(EndpointTagName, endpoint));
 
-        if (AuthenticationRequestCounter.Enabled)
-            AuthenticationRequestCounter.Add(1, tags);
+        if (!string.IsNullOrWhiteSpace(client))
+            tags.Add(new(ClientTagName, client));
 
-        if (authenticationResult == AuthenticationResultFailure
-            && AuthenticationFailureCounter.Enabled)
-        {
-            AuthenticationFailureCounter.Add(1, tags);
-        }
+        AuthenticationRequestCounter.Add(1, in tags);
 
-        if (AuthenticationDurationHistogram.Enabled)
-        {
-            var totalMilliseconds = Stopwatch.GetElapsedTime(startTimestamp).TotalMilliseconds;
-            AuthenticationDurationHistogram.Record(totalMilliseconds, tags);
-        }
+        if (failureReason is not null)
+            AuthenticationFailureCounter.Add(1, in tags);
+
+        var elapsed = GetElapsedMilliseconds(startTimestamp);
+        AuthenticationDurationHistogram.Record(elapsed, in tags);
     }
 
     internal static string? ComputeSecurityKeyHash(string? securityKey)
@@ -180,5 +205,8 @@ public static class SecurityKeyDiagnostics
         var hash = SHA256.HashData(Encoding.UTF8.GetBytes(securityKey));
         return Convert.ToHexString(hash);
     }
+
+    private static double GetElapsedMilliseconds(long startTimestamp)
+        => Stopwatch.GetElapsedTime(startTimestamp).TotalMilliseconds;
 
 }

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Logging;
@@ -52,6 +53,9 @@ public class SecurityKeyAuthorizationFilter : IAsyncAuthorizationFilter
 
         using var activity = SecurityKeyDiagnostics.StartAuthenticationActivity(SecurityKeyDiagnostics.MvcFilterAuthenticationPattern);
         var startTimestamp = Stopwatch.GetTimestamp();
+        var endpoint = GetEndpoint(context.HttpContext);
+
+        activity?.SetTag(SecurityKeyDiagnostics.EndpointTagName, endpoint);
 
         try
         {
@@ -64,7 +68,8 @@ public class SecurityKeyAuthorizationFilter : IAsyncAuthorizationFilter
                     activity: activity,
                     startTimestamp: startTimestamp,
                     authenticationResult: SecurityKeyDiagnostics.AuthenticationResultSuccess,
-                    securityKey: securityKey);
+                    securityKey: securityKey,
+                    endpoint: endpoint);
 
                 return;
             }
@@ -76,6 +81,7 @@ public class SecurityKeyAuthorizationFilter : IAsyncAuthorizationFilter
                 startTimestamp: startTimestamp,
                 authenticationResult: SecurityKeyDiagnostics.AuthenticationResultFailure,
                 securityKey: securityKey,
+                endpoint: endpoint,
                 failureReason: SecurityKeyDiagnostics.InvalidSecurityKeyFailureReason);
 
             context.Result = new UnauthorizedResult();
@@ -85,9 +91,17 @@ public class SecurityKeyAuthorizationFilter : IAsyncAuthorizationFilter
             SecurityKeyDiagnostics.RecordAuthenticationException(
                 activity: activity,
                 startTimestamp: startTimestamp,
-                exception: ex);
+                exception: ex,
+                endpoint: endpoint);
 
             throw;
         }
+    }
+
+    private static string GetEndpoint(HttpContext context)
+    {
+        return context.GetEndpoint()?.DisplayName
+            ?? context.Request.Path.Value
+            ?? "unknown";
     }
 }

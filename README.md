@@ -216,7 +216,7 @@ builder.Services.AddSecurityKey(options =>
 
 AspNetCore.SecurityKey provides built-in IP address whitelisting capabilities to restrict API access based on client IP addresses. This feature supports both IPv4 and IPv6 addresses, individual IPs, and network ranges using CIDR notation.
 
-### Configuration
+### IP Whitelisting Configuration
 
 IP whitelisting is configured using the enhanced configuration format in `appsettings.json`:
 
@@ -305,7 +305,7 @@ app.UseForwardedHeaders();
 app.UseSecurityKey();
 ```
 
-### Security Considerations
+### IP Whitelisting Considerations
 
 1. **Combine with HTTPS**: IP whitelisting should always be combined with HTTPS to prevent man-in-the-middle attacks
 2. **Network Ranges**: Be careful with broad network ranges like `0.0.0.0/0` or `::/0` as they allow all addresses
@@ -724,21 +724,22 @@ Use these stable names when configuring OpenTelemetry:
 
 ### Metrics
 
-| Metric                                | Unit       | Description                                            |
-| ------------------------------------- | ---------- | ------------------------------------------------------ |
-| `securitykey.authentication.requests` | `requests` | Number of SecurityKey authentication requests handled. |
-| `securitykey.authentication.failures` | `failures` | Number of failed SecurityKey authentication requests.  |
-| `securitykey.authentication.duration` | `ms`       | Duration of SecurityKey authentication attempts.       |
+| Metric                      | Unit        | Description                                           |
+| --------------------------- | ----------- | ----------------------------------------------------- |
+| `securitykey.auth.requests` | `{request}` | Number of SecurityKey authentication attempts.        |
+| `securitykey.auth.failures` | `{failure}` | Number of failed SecurityKey authentication attempts. |
+| `securitykey.auth.duration` | `ms`        | Duration of SecurityKey authentication attempts.      |
 
 ### Tags
 
-| Tag                               | Description                                                                    |
-| --------------------------------- | ------------------------------------------------------------------------------ |
-| `securitykey.auth.scheme`         | Authentication scheme name when using the authentication handler.              |
-| `securitykey.auth.result`         | Authentication result, such as `success` or `failure`.                         |
-| `securitykey.auth.failure_reason` | Failure reason, such as `invalid_client` or `authentication_error`.            |
-| `securitykey.auth.pattern`        | Integration pattern, such as `middleware`, `endpoint_filter`, or `mvc_filter`. |
-| `securitykey.api_key.hash`        | SHA-256 hash of the API key for tracking usage without exposing the raw key.   |
+| Tag                               | Description                                                                      |
+| --------------------------------- | -------------------------------------------------------------------------------- |
+| `securitykey.auth.scheme`         | Authentication scheme name when using the authentication handler.                |
+| `securitykey.auth.result`         | Authentication result, such as `success` or `failure`.                           |
+| `securitykey.auth.failure_reason` | Failure reason, such as `invalid_client` or `authentication_error`.              |
+| `securitykey.auth.pattern`        | Integration pattern, such as `middleware`, `endpoint_filter`, or `mvc_filter`.   |
+| `securitykey.client`              | SHA-256 hash of the API key for tracking client usage without exposing raw keys. |
+| `securitykey.endpoint`            | Resolved endpoint display name or request path.                                  |
 
 ### OpenTelemetry Configuration Example
 
