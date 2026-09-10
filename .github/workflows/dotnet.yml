@@ -27,6 +27,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      actions: read
+      checks: write
 
     steps:
       - name: Checkout
@@ -34,7 +36,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install .NET Core
+      - name: Install .NET
         uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.x
@@ -46,15 +48,21 @@ jobs:
         run: dotnet build --no-restore --configuration Release
 
       - name: Run Test
-        run: dotnet test --no-build --configuration Release --collect:"XPlat Code Coverage" --settings coverlet.runsettings
+        run: dotnet test --no-build --configuration Release --coverlet --coverlet-output-format lcov
+
+      - name: Collect Coverage
+        if: success()
+        id: coverage
+        run: |
+          FILES=$(find ${{github.workspace}} -name 'coverage.*.info' -print | tr '\n' ' ')
+          echo "files=$FILES" >> $GITHUB_OUTPUT
 
       - name: Report Coverage
-        if: success()
-        continue-on-error: true
+        if: success() && steps.coverage.outputs.files != ''
         uses: coverallsapp/github-action@v2
+        continue-on-error: true
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          file: "${{github.workspace}}/test/*/TestResults/*/coverage.info"
+          files: ${{ steps.coverage.outputs.files }}
           format: lcov
 
       - name: Create Packages
