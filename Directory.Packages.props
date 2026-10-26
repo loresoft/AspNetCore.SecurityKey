@@ -11,7 +11,7 @@
     <PackageVersion Include="MinVer" Version="8.0.0" />
     <PackageVersion Include="Scalar.AspNetCore" Version="2.18.2" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="10.3.1" />
-    <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="10.0.13" />
+    <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="10.0.14" />
     <PackageVersion Include="XUnit.Hosting" Version="4.1.0" />
     <PackageVersion Include="xunit.v3.mtp-v2" Version="4.0.2" />
   </ItemGroup>
