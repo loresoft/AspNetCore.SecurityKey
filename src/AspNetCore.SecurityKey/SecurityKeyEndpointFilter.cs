@@ -5,7 +5,6 @@ using Microsoft.Extensions.Logging;
 
 namespace AspNetCore.SecurityKey;
 
-#if NET7_0_OR_GREATER
 /// <summary>
 /// An endpoint filter that enforces security API key authorization for minimal API route handlers.
 /// This filter extracts the API key from the current HTTP context and validates it using the configured validator.
@@ -106,4 +105,3 @@ public class SecurityKeyEndpointFilter : IEndpointFilter
             ?? "unknown";
     }
 }
-#endif

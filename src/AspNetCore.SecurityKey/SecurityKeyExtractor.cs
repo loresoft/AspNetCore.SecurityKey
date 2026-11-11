@@ -74,7 +74,7 @@ public class SecurityKeyExtractor : ISecurityKeyExtractor
         {
             // If multiple IPs are present, take the first one
             var value = forwardedFor.ToString();
-            var first =  value.Split(',').FirstOrDefault()?.Trim();
+            var first = value.Split(',').FirstOrDefault()?.Trim();
             if (IPAddress.TryParse(first, out var address))
                 return address;
         }

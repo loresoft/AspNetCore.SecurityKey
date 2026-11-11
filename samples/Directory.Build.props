@@ -7,12 +7,6 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
-  <PropertyGroup Label="Debug">
-    <DebugType>embedded</DebugType>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <IncludeSymbols>false</IncludeSymbols>
-  </PropertyGroup>
-
   <PropertyGroup Label="Options">
     <LangVersion>latest</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -24,7 +18,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AssemblyMetadata.Generators" PrivateAssets="All" />
     <PackageReference Include="Bogus" />
     <PackageReference Include="MinVer" PrivateAssets="All" />
   </ItemGroup>

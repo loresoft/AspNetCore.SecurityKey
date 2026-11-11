@@ -22,8 +22,7 @@ public static class Program
 
         builder.Services.AddSecurityKey();
 
-        builder.Services.AddOpenApi(options => options.AddDocumentTransformer<SecurityKeyDocumentTransformer>());
-        builder.Services.AddEndpointsApiExplorer();
+        builder.Services.AddOpenApi();
 
         var app = builder.Build();
 

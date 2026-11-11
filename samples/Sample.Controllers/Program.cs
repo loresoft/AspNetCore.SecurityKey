@@ -12,19 +12,17 @@ public static class Program
 
         builder.Services.AddSecurityKey(options => options.ConfigurationName = "Authentication:ApiKey");
 
-        builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
+        builder.Services.AddOpenApi();
 
         var app = builder.Build();
-
-        app.UseSwagger();
-        app.UseSwaggerUI();
 
         app.UseHttpsRedirection();
 
         app.UseAuthorization();
 
         app.MapControllers();
+
+        app.MapOpenApi();
 
         app.Run();
     }

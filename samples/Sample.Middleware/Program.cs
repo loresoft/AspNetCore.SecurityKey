@@ -14,13 +14,9 @@ public static class Program
 
         builder.Services.AddSecurityKey();
 
-        builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
+        builder.Services.AddOpenApi();
 
         var app = builder.Build();
-
-        app.UseSwagger();
-        app.UseSwaggerUI();
 
         // required api key for all end points
         app.UseSecurityKey();
@@ -37,6 +33,8 @@ public static class Program
 
         app.MapGet("/addresses", () => AddressFaker.Instance.Generate(10))
             .WithName("GetAddresses");
+
+        app.MapOpenApi();
 
         app.Run();
     }

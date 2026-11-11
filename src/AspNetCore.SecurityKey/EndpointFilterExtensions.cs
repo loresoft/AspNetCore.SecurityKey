@@ -1,4 +1,3 @@
-#if NET7_0_OR_GREATER
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 
@@ -28,4 +27,3 @@ public static class EndpointFilterExtensions
         return builder;
     }
 }
-#endif

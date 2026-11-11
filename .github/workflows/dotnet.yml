@@ -39,7 +39,7 @@ jobs:
       - name: Install .NET
         uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: 10.x
+          dotnet-version: 11.x
 
       - name: Restore Dependencies
         run: dotnet restore
@@ -83,6 +83,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      id-token: write
 
     steps:
       - name: Download Artifact
@@ -91,29 +92,30 @@ jobs:
           name: packages
 
       - name: Publish Packages GitHub
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          for package in $(find . -name "*.nupkg"); do
-            echo "${0##*/}: Pushing $package..."
-            dotnet nuget push "$package" --source https://nuget.pkg.github.com/loresoft/index.json --api-key "$GITHUB_TOKEN" --skip-duplicate
+          for package in $(find -name "*.nupkg"); do
+            echo "${0##*/}": Pushing $package...
+            dotnet nuget push $package --source https://nuget.pkg.github.com/loresoft/index.json --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate
           done
 
       - name: Publish Packages feedz
-        env:
-          FEEDDZ_KEY: ${{ secrets.FEEDDZ_KEY }}
         run: |
-          for package in $(find . -name "*.nupkg"); do
-            echo "${0##*/}: Pushing $package..."
-            dotnet nuget push "$package" --source https://f.feedz.io/loresoft/open/nuget/index.json --api-key "$FEEDDZ_KEY" --skip-duplicate
+          for package in $(find -name "*.nupkg"); do
+            echo "${0##*/}": Pushing $package...
+            dotnet nuget push $package --source https://f.feedz.io/loresoft/open/nuget/index.json --api-key ${{ secrets.FEEDDZ_KEY }} --skip-duplicate
           done
+
+      - name: NuGet Login
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: ${{ secrets.NUGET_USER }}
 
       - name: Publish Packages Nuget
         if: startsWith(github.ref, 'refs/tags/v')
-        env:
-          NUGET_KEY: ${{ secrets.NUGET_KEY }}
         run: |
-          for package in $(find . -name "*.nupkg"); do
-            echo "${0##*/}: Pushing $package..."
-            dotnet nuget push "$package" --source https://api.nuget.org/v3/index.json --api-key "$NUGET_KEY" --skip-duplicate
+          for package in $(find -name "*.nupkg"); do
+            echo "${0##*/}": Pushing $package...
+            dotnet nuget push $package --source https://api.nuget.org/v3/index.json --api-key ${{ steps.login.outputs.NUGET_API_KEY }} --skip-duplicate
           done

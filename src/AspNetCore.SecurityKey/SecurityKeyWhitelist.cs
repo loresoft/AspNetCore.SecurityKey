@@ -61,10 +61,10 @@ public static class SecurityKeyWhitelist
         if (ipAddress == null)
             return false;
 
-       if (IPAddress.TryParse(ipAddress, out var parsedIp))
+        if (IPAddress.TryParse(ipAddress, out var parsedIp))
             return IsIpAllowed(parsedIp, allowedAddresses, allowedNetworks);
 
-       // If parsing fails, treat as not allowed
+        // If parsing fails, treat as not allowed
         return false;
     }
 

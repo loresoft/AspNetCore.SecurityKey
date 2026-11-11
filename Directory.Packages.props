@@ -3,16 +3,15 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
+
   <ItemGroup>
     <PackageVersion Include="AssemblyMetadata.Generators" Version="2.2.0" />
     <PackageVersion Include="Bogus" Version="35.6.5" />
     <PackageVersion Include="coverlet.MTP" Version="10.1.0" />
-    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="11.0.0" />
     <PackageVersion Include="MinVer" Version="8.0.0" />
     <PackageVersion Include="Scalar.AspNetCore" Version="2.20.0" />
-    <PackageVersion Include="Swashbuckle.AspNetCore" Version="11.0.0" />
-    <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="11.0.0" />
-    <PackageVersion Include="XUnit.Hosting" Version="5.0.0" />
     <PackageVersion Include="xunit.v3.mtp-v2" Version="4.0.3" />
   </ItemGroup>
+
 </Project>

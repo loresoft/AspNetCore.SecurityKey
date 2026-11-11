@@ -16,3 +16,8 @@ X-API-KEY: 01HSGVAYZSP9ZY219BCB7B7DA1
 GET {{HostAddress}}/address?X-API-KEY=01HSGVAYZSP9ZY219BCB7B7DA1
 Accept: application/json
 
+###
+
+GET {{HostAddress}}/user/
+Accept: application/json
+X-API-KEY: badkey
